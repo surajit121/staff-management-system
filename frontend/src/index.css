@@ -1,0 +1,431 @@
+@import "tailwindcss";
+
+
+/* ══════════════════════════════════════════════
+   LIGHT MODE — CSS CUSTOM PROPERTIES
+   ══════════════════════════════════════════════ */
+@layer base {
+  :root {
+    /* Backgrounds */
+    --color-bg:        #FDFBF7;
+    --color-surface:   #FFFFFF;
+    --color-surface2:  #F6F3EC;
+    --color-surface3:  #EBE4D8;
+
+    /* Borders */
+    --color-border:    #EBE4D8;
+    --color-border2:   #D7CDBB;
+
+    /* Text */
+    --color-text:      #1C2127;
+    --color-text2:     #4C5561;
+    --color-text3:     #8691A0;
+
+    /* Brand / Accent — Golden Yellow */
+    --color-accent:       #F59E0B;
+    --color-accent-hover: #D97706;
+    --color-accent-light: #FEF3C7;
+    --color-accent-ring:  rgba(245,158,11,0.22);
+
+    /* Sidebar — Deep Teal */
+    --color-sidebar-bg:         #0D3B4A;
+    --color-sidebar-surface:    #134B5E;
+    --color-sidebar-border:     rgba(255,255,255,0.08);
+    --color-sidebar-text:       rgba(255,255,255,0.92);
+    --color-sidebar-text2:      rgba(255,255,255,0.60);
+    --color-sidebar-text3:      rgba(255,255,255,0.30);
+    --color-sidebar-active-bg:  rgba(245,158,11,0.22);
+    --color-sidebar-active-text:#FCD34D;
+    --color-sidebar-hover-bg:   rgba(255,255,255,0.07);
+
+    /* Semantic colors */
+    --color-green:        #16A34A;
+    --color-green-light:  #DCFCE7;
+    --color-red:          #DC2626;
+    --color-red-light:    #FEE2E2;
+    --color-amber:        #D97706;
+    --color-amber-light:  #FEF3C7;
+    --color-purple:       #7C3AED;
+    --color-purple-light: #EDE9FE;
+    --color-teal:         #0891B2;
+    --color-teal-light:   #CFFAFE;
+
+    /* Scrollbar */
+    --color-scrollbar:    #D7CDBB;
+    --color-scrollbar-bg: #F6F3EC;
+
+    /* Shadows */
+    --shadow-sm:   0 1px 2px rgba(13,59,74,0.05);
+    --shadow-main: 0 1px 3px rgba(13,59,74,0.07), 0 4px 12px rgba(245,158,11,0.05);
+    --shadow-card: 0 0 0 1px rgba(245,158,11,0.06), 0 4px 20px rgba(13,59,74,0.08);
+    --shadow-glow: 0 0 24px rgba(245,158,11,0.22);
+
+    /* Chart colors (used in recharts) */
+    --chart-grid:           #EBE4D8;
+    --chart-tooltip-bg:     #FFFFFF;
+    --chart-tooltip-border: #EBE4D8;
+    --chart-cursor:         rgba(235,228,216,0.6);
+    --chart-tick:           #8691A0;
+  }
+
+  /* ══════════════════════════════════════════════
+     DARK MODE — CSS CUSTOM PROPERTIES
+     ══════════════════════════════════════════════ */
+  .dark {
+    /* Backgrounds */
+    --color-bg:        #000000;
+    --color-surface:   #0A0A0A;
+    --color-surface2:  #121212;
+    --color-surface3:  #1A1A1A;
+
+    /* Borders */
+    --color-border:    #1A1A1A;
+    --color-border2:   #262626;
+
+    /* Text */
+    --color-text:      #FAFAFA;
+    --color-text2:     #A3A3A3;
+    --color-text3:     #525252;
+
+    /* Brand / Accent */
+    --color-accent:       #FBBF24;
+    --color-accent-hover: #FDE68A;
+    --color-accent-light: #452A0A;
+    --color-accent-ring:  rgba(251,191,36,0.25);
+
+    /* Sidebar — OLED Black */
+    --color-sidebar-bg:         #000000;
+    --color-sidebar-surface:    #0A0A0A;
+    --color-sidebar-border:     rgba(255,255,255,0.08);
+    --color-sidebar-text:       rgba(255,255,255,0.90);
+    --color-sidebar-text2:      rgba(255,255,255,0.50);
+    --color-sidebar-text3:      rgba(255,255,255,0.25);
+    --color-sidebar-active-bg:  rgba(251,191,36,0.15);
+    --color-sidebar-active-text:#FBBF24;
+    --color-sidebar-hover-bg:   rgba(255,255,255,0.08);
+
+    /* Semantic colors */
+    --color-green:        #34D399;
+    --color-green-light:  #052E16;
+    --color-red:          #F87171;
+    --color-red-light:    #2D0909;
+    --color-amber:        #FBBF24;
+    --color-amber-light:  #2D1D03;
+    --color-purple:       #A78BFA;
+    --color-purple-light: #1E1040;
+    --color-teal:         #22D3EE;
+    --color-teal-light:   #042030;
+
+    /* Scrollbar */
+    --color-scrollbar:    #262626;
+    --color-scrollbar-bg: #0A0A0A;
+
+    /* Shadows */
+    --shadow-sm:   0 1px 2px rgba(0,0,0,0.80);
+    --shadow-main: 0 1px 3px rgba(0,0,0,0.90), 0 4px 12px rgba(0,0,0,0.80);
+    --shadow-card: 0 0 0 1px rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.90);
+    --shadow-glow: 0 0 24px rgba(251,191,36,0.28);
+
+    /* Chart colors */
+    --chart-grid:           #1A1A1A;
+    --chart-tooltip-bg:     #0A0A0A;
+    --chart-tooltip-border: #262626;
+    --chart-cursor:         rgba(255,255,255,0.05);
+    --chart-tick:           #525252;
+  }
+
+  /* ══════════════════════════════════════════════
+     GLOBAL SMOOTH THEME TRANSITION
+     ══════════════════════════════════════════════ */
+  .theme-transitioning,
+  .theme-transitioning *,
+  .theme-transitioning *::before,
+  .theme-transitioning *::after {
+    transition:
+      background-color 350ms ease,
+      border-color     350ms ease,
+      color            350ms ease,
+      fill             350ms ease,
+      stroke           350ms ease,
+      box-shadow       350ms ease !important;
+  }
+
+  /* ══════════════════════════════════════════════
+     BASE STYLES
+     ══════════════════════════════════════════════ */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-scrollbar-bg); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-border2);
+  }
+
+  /* Focus ring */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   TAILWIND THEME TOKENS
+   ══════════════════════════════════════════════ */
+@theme {
+  --color-bg:           var(--color-bg);
+  --color-surface:      var(--color-surface);
+  --color-surface2:     var(--color-surface2);
+  --color-surface3:     var(--color-surface3);
+  --color-border:       var(--color-border);
+  --color-border2:      var(--color-border2);
+  --color-text:         var(--color-text);
+  --color-text2:        var(--color-text2);
+  --color-text3:        var(--color-text3);
+  --color-accent:       var(--color-accent);
+  --color-accent-light: var(--color-accent-light);
+  --color-green:        var(--color-green);
+  --color-green-light:  var(--color-green-light);
+  --color-red:          var(--color-red);
+  --color-red-light:    var(--color-red-light);
+  --color-amber:        var(--color-amber);
+  --color-amber-light:  var(--color-amber-light);
+  --color-purple:       var(--color-purple);
+  --color-purple-light: var(--color-purple-light);
+  --color-teal:         var(--color-teal);
+  --color-teal-light:   var(--color-teal-light);
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --shadow-sm:   var(--shadow-sm);
+  --shadow-main: var(--shadow-main);
+  --shadow-card: var(--shadow-card);
+  --shadow-glow: var(--shadow-glow);
+}
+
+/* ══════════════════════════════════════════════
+   UTILITY CLASSES
+   ══════════════════════════════════════════════ */
+@layer utilities {
+  /* Glass card */
+  .glass {
+    backdrop-filter: blur(12px) saturate(160%);
+    background-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+  }
+
+  /* Card base */
+  .card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.35s ease, transform 0.25s ease, border-color 0.35s ease;
+  }
+
+  /* ══════════════════════════════════════════════
+     GLOBAL HOVER GLOW — ALL CARDS & BOXES
+     ══════════════════════════════════════════════ */
+
+  /* Glow color palette — each card gets a different hue via nth-child */
+  @keyframes glow-pulse {
+    0%   { box-shadow: 0 0 0 2px var(--glow-color, #5B8AF855), 0 8px 32px var(--glow-color, #5B8AF844), 0 2px 8px var(--glow-color, #5B8AF822); }
+    50%  { box-shadow: 0 0 0 2px var(--glow-color, #5B8AF888), 0 12px 40px var(--glow-color, #5B8AF866), 0 4px 12px var(--glow-color, #5B8AF833); }
+    100% { box-shadow: 0 0 0 2px var(--glow-color, #5B8AF855), 0 8px 32px var(--glow-color, #5B8AF844), 0 2px 8px var(--glow-color, #5B8AF822); }
+  }
+
+  /* Apply to .card class */
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: var(--glow-color, var(--color-accent));
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  /* Color assignments per card position — blue, amber, green, red, purple, teal, repeating */
+  .card:nth-child(6n+1) { --glow-color: #5B8AF8; }
+  .card:nth-child(6n+2) { --glow-color: #FBBF24; }
+  .card:nth-child(6n+3) { --glow-color: #34D399; }
+  .card:nth-child(6n+4) { --glow-color: #F87171; }
+  .card:nth-child(6n+5) { --glow-color: #A78BFA; }
+  .card:nth-child(6n+6) { --glow-color: #22D3EE; }
+
+  /* Apply to inline-styled boxes (bg-surface + border + rounded-xl pattern used in all pages) */
+  .rounded-xl {
+    transition: box-shadow 0.35s ease, transform 0.25s ease, border-color 0.35s ease;
+  }
+  .rounded-xl:hover {
+    transform: translateY(-3px);
+    border-color: var(--glow-color, var(--color-accent)) !important;
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  /* Color assignments for rounded-xl boxes */
+  .rounded-xl:nth-child(6n+1) { --glow-color: #5B8AF8; }
+  .rounded-xl:nth-child(6n+2) { --glow-color: #FBBF24; }
+  .rounded-xl:nth-child(6n+3) { --glow-color: #34D399; }
+  .rounded-xl:nth-child(6n+4) { --glow-color: #F87171; }
+  .rounded-xl:nth-child(6n+5) { --glow-color: #A78BFA; }
+  .rounded-xl:nth-child(6n+6) { --glow-color: #22D3EE; }
+
+  /* Exclude table rows and interactive inner elements from lifting */
+  tr.rounded-xl:hover,
+  td.rounded-xl:hover,
+  th.rounded-xl:hover,
+  button.rounded-xl:hover,
+  a.rounded-xl:hover,
+  .overflow-hidden.rounded-xl:hover,
+  [class*="overflow-"].rounded-xl:hover {
+    transform: none;
+    animation: none;
+    box-shadow: var(--shadow-card);
+    border-color: var(--color-border) !important;
+  }
+
+  /* Named glow color helpers for explicit per-card use */
+  .glow-blue   { --glow-color: #5B8AF8; }
+  .glow-amber  { --glow-color: #FBBF24; }
+  .glow-green  { --glow-color: #34D399; }
+  .glow-red    { --glow-color: #F87171; }
+  .glow-purple { --glow-color: #A78BFA; }
+  .glow-teal   { --glow-color: #22D3EE; }
+
+  /* Accent glow button */
+  .btn-accent {
+    background-color: var(--color-accent);
+    color: #ffffff;
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: opacity 150ms, box-shadow 150ms, transform 100ms;
+  }
+  .btn-accent:hover {
+    opacity: 0.92;
+    box-shadow: var(--shadow-glow);
+  }
+  .btn-accent:active { transform: scale(0.96); }
+
+  /* Subtle badge */
+  .badge {
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.125rem 0.4rem;
+    border-radius: 9999px;
+    line-height: 1.4;
+  }
+
+  /* Theme toggle button */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-border);
+    color: var(--color-text2);
+    background: transparent;
+    cursor: pointer;
+    transition: background 180ms, color 180ms, box-shadow 180ms;
+  }
+  .theme-toggle:hover {
+    background: var(--color-surface2);
+    color: var(--color-text);
+    box-shadow: 0 0 10px var(--color-accent-ring);
+  }
+
+  /* Input base */
+  .input-base {
+    background-color: var(--color-surface2);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.625rem;
+    font-size: 0.8125rem;
+    transition: border-color 150ms, box-shadow 150ms;
+  }
+  .input-base:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-ring);
+  }
+  .input-base::placeholder { color: var(--color-text3); }
+
+  /* ══════════════════════════════════════════════
+     ANIMATIONS & INTERACTION EFFECTS
+     ══════════════════════════════════════════════ */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse-glow {
+    0% { box-shadow: 0 0 0 0 var(--pulse-color, var(--color-accent-ring)); }
+    70% { box-shadow: 0 0 0 6px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+
+  .animate-fade-in { animation: fade-in 0.4s ease-out forwards; }
+  .animate-slide-up { animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  
+  /* Elevate elements on hover (great for stat cards) */
+  .hover-lift {
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Smooth row hover reveal for actions */
+  .row-actions {
+    opacity: 0;
+    transform: translateX(8px) scale(0.95);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  tr:hover .row-actions, .group:hover .row-actions {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  /* Pulsing dot for live status */
+  .status-pulse {
+    position: relative;
+  }
+  .status-pulse::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    animation: pulse-glow 2s infinite;
+  }
+}
+

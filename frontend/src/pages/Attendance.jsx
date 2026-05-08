@@ -1,0 +1,419 @@
+import React, { useState, useEffect } from 'react';
+import { Calendar, CheckCircle2, XCircle, Clock, Edit2, Trash2, Loader2, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAttendance, useStaff } from '../hooks/useResource';
+import { cn, formatDate } from '../lib/utils';
+import { Skeleton } from '../components/ui/skeleton';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+import { useAction } from '../context/ActionContext';
+import StaffCalendar from '../components/StaffCalendar';
+import { downloadCSV } from '../lib/export';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
+
+const attendanceSchema = z.object({
+  staffId: z.string().min(1, "Staff selection is required"),
+  date: z.string().min(1, "Date is required"),
+  status: z.enum(['Present', 'Absent', 'Half Day', 'Work From Home']),
+  checkIn: z.string().optional(),
+  checkOut: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export default function Attendance() {
+  const { data: attendance, isLoading, create, update, remove, isCreating, isUpdating } = useAttendance();
+  const { staffList, isLoading: isStaffLoading } = useStaff();
+  const { registerAddAction, registerDownloadAction, searchQuery, dateFilter } = useAction();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [calendarStaff, setCalendarStaff] = useState(null);
+
+  const displayDate = dateFilter || new Date().toISOString().split('T')[0];
+
+  const mergedAttendance = staffList.map(staff => {
+    const record = attendance.find(r => 
+      (r.staffId?._id === staff._id || r.staffId === staff._id) && 
+      (r.date?.split('T')[0] === displayDate)
+    );
+    
+    return {
+      staffId: staff,
+      record: record,
+      status: record ? record.status : 'Not Marked',
+      _id: record?._id || `temp-${staff._id}`,
+      isNotMarked: !record
+    };
+  }).filter(item => {
+    const matchesSearch = item.staffId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          item.status.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
+  });
+
+  useEffect(() => {
+    const unregisterAdd = registerAddAction(() => setIsModalOpen(true));
+    const unregisterDownload = registerDownloadAction(() => {
+      const exportData = mergedAttendance.map(a => ({
+        StaffName: a.staffId?.name || 'Unknown',
+        Date: displayDate,
+        Status: a.status,
+        CheckIn: a.record?.checkIn || '',
+        CheckOut: a.record?.checkOut || '',
+        Notes: a.record?.notes || ''
+      }));
+      downloadCSV(exportData, `Attendance_${displayDate}`);
+    });
+    return () => {
+      unregisterAdd();
+      unregisterDownload();
+    };
+  }, [registerAddAction, registerDownloadAction, mergedAttendance, displayDate]);
+
+  const form = useForm({
+    resolver: zodResolver(attendanceSchema),
+    defaultValues: {
+      staffId: '',
+      date: displayDate,
+      status: 'Present',
+      checkIn: '09:00',
+      checkOut: '18:00',
+      notes: '',
+    },
+  });
+
+  const onSubmit = async (values) => {
+    try {
+      if (editingRecord) {
+        await update({ id: editingRecord._id, data: values });
+        toast.success("Attendance record updated");
+      } else {
+        await create(values);
+        toast.success("Attendance marked successfully");
+      }
+      handleClose();
+    } catch (error) {
+      toast.error(error.message || "Failed to save attendance");
+    }
+  };
+
+  const handleMark = (staff) => {
+    form.reset({
+      staffId: staff._id,
+      date: displayDate,
+      status: 'Present',
+      checkIn: '09:00',
+      checkOut: '18:00',
+      notes: '',
+    });
+    setIsModalOpen(true);
+  };
+
+  const quickMark = async (staffId, status) => {
+    try {
+      await create({
+        staffId: staffId,
+        date: displayDate,
+        status: status,
+        checkIn: '09:00',
+        checkOut: '18:00',
+        notes: `Quick marked as ${status}`,
+      });
+      toast.success(`Marked as ${status}`);
+    } catch (error) {
+      toast.error(error.message || "Failed to mark attendance");
+    }
+  };
+
+  const handleEdit = (item) => {
+    const record = item.record;
+    setEditingRecord(record);
+    form.reset({
+      staffId: record.staffId?._id || record.staffId,
+      date: record.date.split('T')[0],
+      status: record.status,
+      checkIn: record.checkIn,
+      checkOut: record.checkOut,
+      notes: record.notes,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Delete this attendance record?")) {
+      try {
+        await remove(id);
+        toast.success("Record deleted");
+      } catch (error) {
+        toast.error("Failed to delete record");
+      }
+    }
+  };
+
+  const handleClose = () => {
+    setIsModalOpen(false);
+    setEditingRecord(null);
+    form.reset();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-text">Attendance Log</h2>
+          <p className="text-sm text-text2">Track and manage daily attendance.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Present Today', value: mergedAttendance.filter(a => a.status === 'Present').length, icon: CheckCircle2, color: 'text-green bg-green-light' },
+          { label: 'Absent Today', value: mergedAttendance.filter(a => a.status === 'Absent').length, icon: XCircle, color: 'text-red bg-red-light' },
+          { label: 'Not Marked', value: mergedAttendance.filter(a => a.isNotMarked).length, icon: Clock, color: 'text-text3 bg-surface2' },
+          { label: 'Total Staff', value: staffList.length, icon: CheckCircle2, color: 'text-accent bg-accent-light' },
+        ].map(stat => (
+          <div key={stat.label} className="bg-surface border border-border rounded-xl p-5 shadow-sm flex items-center gap-4">
+            <div className={cn("p-3 rounded-lg", stat.color)}>
+              <stat.icon size={20} />
+            </div>
+            <div>
+              <div className="text-[12px] text-text2 font-medium">{stat.label}</div>
+              <div className="text-xl font-bold">{stat.value}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-surface2/50 border-b border-border">
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Staff Member</th>
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Date</th>
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Status</th>
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Log Times</th>
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <AnimatePresence>
+              {(isLoading || isStaffLoading) ? (
+                Array(5).fill(0).map((_, i) => (
+                  <tr key={i} className="border-b border-border"><td colSpan={5} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                ))
+              ) : mergedAttendance.map((item, idx) => (
+                <motion.tr
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  key={item._id}
+                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
+                        {item.staffId?.initials || '??'}
+                      </div>
+                      <div className="text-[14px] font-medium text-text">{item.staffId?.name || 'Unknown'}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-[13.5px] text-text2 font-mono">
+                    {formatDate(displayDate)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={cn(
+                      "px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide",
+                      item.status === 'Present' ? "bg-green-light text-green" :
+                        item.status === 'Absent' ? "bg-red-light text-red" : 
+                        item.isNotMarked ? "bg-surface2 text-text3" : "bg-amber-light text-amber"
+                    )}>
+                      {item.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-[12px] text-text2 font-mono">
+                      {item.record?.checkIn || '--:--'} → {item.record?.checkOut || '--:--'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                      <button onClick={() => setCalendarStaff(item.staffId)} title="View Monthly Calendar" className="p-2 rounded-lg text-text2 hover:bg-green-light hover:text-green">
+                        <Calendar size={16} />
+                      </button>
+                      {item.isNotMarked ? (
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => quickMark(item.staffId._id, 'Present')} 
+                            title="Quick Mark Present" 
+                            className="w-8 h-8 rounded-full bg-green/10 text-green hover:bg-green hover:text-white flex items-center justify-center transition-all border border-green/20"
+                          >
+                            <CheckCircle2 size={16} />
+                          </button>
+                          <button 
+                            onClick={() => quickMark(item.staffId._id, 'Absent')} 
+                            title="Quick Mark Absent" 
+                            className="w-8 h-8 rounded-full bg-red/10 text-red hover:bg-red hover:text-white flex items-center justify-center transition-all border border-red/20"
+                          >
+                            <XCircle size={16} />
+                          </button>
+                          <button onClick={() => handleMark(item.staffId)} className="p-2 rounded-lg text-text3 hover:bg-surface2 hover:text-text flex items-center gap-1 text-[11px] font-bold">
+                            <Plus size={14} /> MORE
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <button onClick={() => handleEdit(item)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
+                            <Edit2 size={16} />
+                          </button>
+                          <button onClick={() => handleDelete(item.record._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </AnimatePresence>
+          </tbody>
+        </table>
+      </div>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-surface text-text">
+          <DialogHeader>
+            <DialogTitle className="font-bold">{editingRecord ? 'Update Log' : 'Mark Attendance'}</DialogTitle>
+            <DialogDescription className="text-xs text-text2">
+              {editingRecord ? 'Modify the details for this attendance record.' : 'Capture the attendance status for the selected team member.'}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+              <FormField
+                control={form.control}
+                name="staffId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Select Staff member</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-surface2">
+                          <SelectValue placeholder="Choose a member" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-surface border-border">
+                        {staffList.map(s => (
+                          <SelectItem key={s._id} value={s._id}>{s.name} ({s.role})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Date</FormLabel>
+                      <FormControl><Input type="date" {...field} className="bg-surface2" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Status</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger className="bg-surface2"><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent className="bg-surface border-border">
+                          {['Present', 'Absent', 'Half Day', 'Work From Home'].map(s => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="checkIn"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Check-in</FormLabel>
+                      <FormControl><Input type="time" {...field} className="bg-surface2" /></FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="checkOut"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Check-out</FormLabel>
+                      <FormControl><Input type="time" {...field} className="bg-surface2" /></FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <DialogFooter className="pt-4">
+                <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
+                <Button type="submit" disabled={isCreating || isUpdating} className="bg-accent text-white">
+                  {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {editingRecord ? 'Save Changes' : 'Submit Log'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!calendarStaff} onOpenChange={(open) => !open && setCalendarStaff(null)}>
+        <DialogContent aria-describedby={undefined} className="sm:max-w-[550px] bg-transparent border-0 shadow-none p-0">
+          <DialogHeader className="hidden">
+            <DialogTitle>Calendar View</DialogTitle>
+            <DialogDescription>Monthly attendance overview for the selected staff member.</DialogDescription>
+          </DialogHeader>
+          <StaffCalendar 
+            staff={calendarStaff} 
+            attendanceRecords={attendance.filter(r => (r.staffId?._id || r.staffId) === calendarStaff?._id)} 
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
