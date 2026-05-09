@@ -44,7 +44,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 
 /* ── Stat Card ── */
-const StatCard = ({ label, value, subValue, icon: Icon, accentColor, isLoading, onClick, delay = 0 }) => {
+const StatCard = ({ label, value, subValue, icon: Icon, accentColor, bgRest, bgHover, isLoading, onClick, delay = 0 }) => {
   const [hovered, setHovered] = React.useState(false);
 
   return (
@@ -60,11 +60,12 @@ const StatCard = ({ label, value, subValue, icon: Icon, accentColor, isLoading, 
         onClick && "cursor-pointer active:scale-[0.98]"
       )}
       style={{
-        transition: 'box-shadow 0.35s ease, transform 0.2s ease',
+        transition: 'box-shadow 0.4s ease, transform 0.25s ease, background-color 0.4s ease',
+        backgroundColor: hovered ? `${accentColor}${bgHover}` : `${accentColor}${bgRest}`,
         boxShadow: hovered
-          ? `0 0 0 2px ${accentColor}55, 0 8px 32px ${accentColor}44, 0 2px 8px ${accentColor}22`
-          : undefined,
-        transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
+          ? `0 0 0 1px ${accentColor}15, 0 4px 20px ${accentColor}08`
+          : `0 0 0 1px ${accentColor}10`,
+        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
       }}
     >
       <div className="flex justify-between items-start mb-1.5">
@@ -179,6 +180,8 @@ export default function Dashboard() {
       subValue: 'Active employees',
       icon: Users,
       accentColor: isDark ? '#5B8AF8' : '#3B6CF6',
+      bgRest: '05', // 2% extremely soft
+      bgHover: '0A', // 4% soft glow
     },
     {
       label: 'Pending Expenses',
@@ -187,6 +190,8 @@ export default function Dashboard() {
       subValue: 'Awaiting approval',
       icon: Wallet,
       accentColor: isDark ? '#FBBF24' : '#D97706',
+      bgRest: '05',
+      bgHover: '0A',
     },
     {
       label: 'Active Projects',
@@ -195,6 +200,8 @@ export default function Dashboard() {
       subValue: 'Ongoing sites',
       icon: Briefcase,
       accentColor: isDark ? '#34D399' : '#16A34A',
+      bgRest: '05',
+      bgHover: '0A',
     },
     {
       label: 'Pending Billing',
@@ -203,6 +210,8 @@ export default function Dashboard() {
       subValue: 'Delivered not billed',
       icon: FileText,
       accentColor: isDark ? '#F87171' : '#DC2626',
+      bgRest: '05',
+      bgHover: '0A',
     },
   ];
 
