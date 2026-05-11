@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export default function StaffCalendar({ staff, attendanceRecords = [] }) {
+export default function StaffCalendar({ staff, attendanceRecords = [], onDateClick }) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const year = currentDate.getFullYear();
@@ -16,12 +16,13 @@ export default function StaffCalendar({ staff, attendanceRecords = [] }) {
 
   const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  // Map dates to status securely
+  // Map dates to records securely
   const attendanceMap = useMemo(() => {
     const map = {};
     attendanceRecords.forEach(record => {
       if (record && record.date) {
-        map[record.date] = record.status;
+        const dateKey = record.date.split('T')[0];
+        map[dateKey] = record;
       }
     });
     return map;
@@ -40,7 +41,8 @@ export default function StaffCalendar({ staff, attendanceRecords = [] }) {
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const status = attendanceMap[dateStr];
+    const record = attendanceMap[dateStr];
+    const status = record?.status;
 
     if (status) {
       if (status === 'Present' || status === 'Work From Home' || status === 'Half Day') {
@@ -54,6 +56,7 @@ export default function StaffCalendar({ staff, attendanceRecords = [] }) {
       date: d,
       dateStr,
       status: status || null,
+      record: record || null,
       key: dateStr,
       isToday: dateStr === todayStr
     });
@@ -100,8 +103,10 @@ export default function StaffCalendar({ staff, attendanceRecords = [] }) {
             return (
               <div
                 key={day.key}
+                onClick={() => onDateClick && onDateClick(day.dateStr, day.record)}
                 className={cn(
                   "h-12 border rounded-lg flex items-center justify-center text-[14px] font-medium transition-all relative overflow-hidden group",
+                  onDateClick && "cursor-pointer hover:scale-105 shadow-sm hover:shadow-md",
                   isPresent ? "bg-green-light border-green text-green" :
                     isAbsent ? "bg-red-light border-red text-red" :
                       "bg-surface2/30 border-border text-text2"

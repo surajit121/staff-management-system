@@ -1,5 +1,6 @@
 import React from 'react';
-import { Calendar, Filter, Plus, Download, Search, X, Moon, Sun, LayoutPanelLeft } from 'lucide-react';
+import { Calendar, Filter, Plus, Download, Search, X, Moon, Sun, LayoutPanelLeft, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { useAction } from '../context/ActionContext';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +13,7 @@ export default function Topbar({ title, subtitle }) {
     theme, toggleTheme,
     dateFilter, setDateFilter,
   } = useAction();
+  const { logout } = useAuth();
 
   const [isAddDropdownOpen, setIsAddDropdownOpen] = React.useState(false);
   const dateInputRef = React.useRef(null);
@@ -194,6 +196,20 @@ export default function Topbar({ title, subtitle }) {
               }
             </motion.span>
           </AnimatePresence>
+        </button>
+
+        {/* Logout Button */}
+        <button
+          onClick={logout}
+          title="Sign out"
+          className="flex items-center justify-center w-[34px] h-[34px] rounded-lg transition-colors border shadow-sm hover:bg-red-light hover:border-red hover:text-red ml-1"
+          style={{
+            background: 'var(--color-surface)',
+            borderColor: 'var(--color-border)',
+            color: 'var(--color-text2)',
+          }}
+        >
+          <LogOut size={14} />
         </button>
 
         {/* Add Entry */}

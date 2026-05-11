@@ -19,6 +19,10 @@ import { MaterialUsage } from './models/MaterialUsage.js';
 import { Billing } from './models/Billing.js';
 import { SalaryPayment } from './models/SalaryPayment.js';
 import { Leave } from './models/Leave.js';
+import { Admin } from './models/Admin.js';
+import authRoutes from './routes/auth.js';
+import { authMiddleware } from './middleware/auth.js';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -59,12 +63,28 @@ app.use('/uploads', express.static(uploadsDir));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB Connected'))
+  .then(async () => {
+    console.log('✅ MongoDB Connected');
+    try {
+      const adminExists = await Admin.findOne();
+      if (!adminExists) {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('password', salt);
+        await Admin.create({ username: 'admin', password: hashedPassword });
+        console.log('✅ Default Admin created: admin / password');
+      }
+    } catch (err) {
+      console.error('Failed to create default admin:', err);
+    }
+  })
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
+
+// Auth Routes
+app.use('/api/auth', authRoutes);
 
 // Generic CRUD Route Helper (for prototype speed)
 const createRoutes = (model, path, populate = null) => {
-  app.get(`/api/${path}`, async (req, res) => {
+  app.get(`/api/${path}`, authMiddleware, async (req, res) => {
     try {
       let query = model.find().sort({ createdAt: -1 });
       if (populate) {
@@ -77,7 +97,7 @@ const createRoutes = (model, path, populate = null) => {
     }
   });
 
-  app.post(`/api/${path}`, async (req, res) => {
+  app.post(`/api/${path}`, authMiddleware, async (req, res) => {
     try {
       const newItem = new model(req.body);
       const savedItem = await newItem.save();
@@ -92,7 +112,7 @@ const createRoutes = (model, path, populate = null) => {
     }
   });
 
-  app.put(`/api/${path}/:id`, async (req, res) => {
+  app.put(`/api/${path}/:id`, authMiddleware, async (req, res) => {
     try {
       const updatedItem = await model.findByIdAndUpdate(req.params.id, req.body, { new: true });
       if (populate) {
@@ -105,7 +125,7 @@ const createRoutes = (model, path, populate = null) => {
     }
   });
 
-  app.delete(`/api/${path}/:id`, async (req, res) => {
+  app.delete(`/api/${path}/:id`, authMiddleware, async (req, res) => {
     try {
       await model.findByIdAndDelete(req.params.id);
       res.json({ message: 'Deleted successfully' });
@@ -118,7 +138,7 @@ const createRoutes = (model, path, populate = null) => {
 // Create API Routes
 
 // File Upload Route
-app.post('/api/upload', upload.single('file'), (req, res) => {
+app.post('/api/upload', authMiddleware, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
   const url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
   res.status(201).json({
@@ -130,7 +150,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 });
 
 // Delete Uploaded File
-app.delete('/api/upload/:filename', (req, res) => {
+app.delete('/api/upload/:filename', authMiddleware, (req, res) => {
   const filePath = path.join(uploadsDir, req.params.filename);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
@@ -140,7 +160,7 @@ app.delete('/api/upload/:filename', (req, res) => {
   }
 });
 
-app.post('/api/staff/bulk', async (req, res) => {
+app.post('/api/staff/bulk', authMiddleware, async (req, res) => {
   try {
     const staffData = req.body; // Array of staff objects
     const savedStaff = await Staff.insertMany(staffData);
@@ -164,7 +184,7 @@ app.post('/api/staff/bulk', async (req, res) => {
 });
 
 // Bulk route for Stock Transfers (multi-item transfers)
-app.post('/api/stock/bulk', async (req, res) => {
+app.post('/api/stock/bulk', authMiddleware, async (req, res) => {
   try {
     const transferData = req.body; // Array of stock transfer objects
     const savedTransfers = await StockTransfer.insertMany(transferData);
@@ -175,7 +195,7 @@ app.post('/api/stock/bulk', async (req, res) => {
 });
 
 // Bulk route for Materials (multi-item usages)
-app.post('/api/materials/bulk', async (req, res) => {
+app.post('/api/materials/bulk', authMiddleware, async (req, res) => {
   try {
     const materialData = req.body; // Array of material usage objects
     const savedMaterials = await MaterialUsage.insertMany(materialData);
@@ -186,7 +206,7 @@ app.post('/api/materials/bulk', async (req, res) => {
 });
 
 // Special route for single staff creation with auto-attendance
-app.post('/api/staff', async (req, res) => {
+app.post('/api/staff', authMiddleware, async (req, res) => {
   try {
     const newItem = new Staff(req.body);
     const savedItem = await newItem.save();
@@ -222,7 +242,7 @@ createRoutes(SalaryPayment, 'salary-payments', 'staffId');
 createRoutes(Leave, 'leave', 'staffId');
 
 // Special route for staff selection in attendance/expenses
-app.get('/api/staff-list', async (req, res) => {
+app.get('/api/staff-list', authMiddleware, async (req, res) => {
   try {
     const staff = await Staff.find({}, 'name role color initials');
     res.json(staff);
@@ -232,7 +252,7 @@ app.get('/api/staff-list', async (req, res) => {
 });
 
 // Dashboard Statistics Aggregator
-app.get('/api/dashboard-stats', async (req, res) => {
+app.get('/api/dashboard-stats', authMiddleware, async (req, res) => {
   try {
     const todayStr = new Date().toISOString().split('T')[0];
     

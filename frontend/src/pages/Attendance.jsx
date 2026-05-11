@@ -182,6 +182,42 @@ export default function Attendance() {
     form.reset();
   };
 
+  const handleCalendarDateClick = async (dateStr, record) => {
+    if (!calendarStaff) return;
+
+    try {
+      if (!record) {
+        await create({
+          staffId: calendarStaff._id,
+          date: dateStr,
+          status: 'Present',
+          checkIn: '09:00',
+          checkOut: '18:00',
+          notes: '',
+        });
+        toast.success(`Marked Present on ${dateStr}`);
+      } else if (record.status === 'Present' || record.status === 'Half Day' || record.status === 'Work From Home') {
+        await update({
+          id: record._id,
+          data: {
+            staffId: calendarStaff._id,
+            date: dateStr,
+            status: 'Absent',
+            checkIn: record.checkIn,
+            checkOut: record.checkOut,
+            notes: record.notes,
+          }
+        });
+        toast.success(`Marked Absent on ${dateStr}`);
+      } else if (record.status === 'Absent') {
+        await remove(record._id);
+        toast.success(`Attendance cleared on ${dateStr}`);
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to update attendance");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -411,6 +447,7 @@ export default function Attendance() {
           <StaffCalendar 
             staff={calendarStaff} 
             attendanceRecords={attendance.filter(r => (r.staffId?._id || r.staffId) === calendarStaff?._id)} 
+            onDateClick={handleCalendarDateClick}
           />
         </DialogContent>
       </Dialog>
