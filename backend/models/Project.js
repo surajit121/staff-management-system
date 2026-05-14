@@ -9,6 +9,7 @@ const projectSchema = new mongoose.Schema({
   expense: { type: Number, default: 0 },
   expensiveDetails: [{
     item: { type: String },
+    date: { type: Date },
     quantity: { type: Number, default: 0 },
     rate: { type: Number, default: 0 },
     amount: { type: Number, default: 0 }

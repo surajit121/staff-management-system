@@ -91,6 +91,7 @@ const projectSchema = z.object({
   expense: z.coerce.number().min(0).default(0),
   expensiveDetails: z.array(z.object({
     item: z.string().optional().default(''),
+    date: z.string().optional().default(''),
     quantity: z.coerce.number().min(0).default(0),
     rate: z.coerce.number().min(0).default(0),
     amount: z.coerce.number().min(0).default(0),
@@ -172,7 +173,7 @@ export default function Projects() {
       manager: '',
       budget: 0,
       expense: 0,
-      expensiveDetails: [{ item: '', quantity: 0, rate: 0, amount: 0 }],
+      expensiveDetails: [{ item: '', date: todayStr, quantity: 0, rate: 0, amount: 0 }],
       status: 'Active',
       stock: 0,
       remarks: '',
@@ -237,11 +238,12 @@ export default function Projects() {
       expensiveDetails: record.expensiveDetails && record.expensiveDetails.length > 0 
         ? record.expensiveDetails.map(d => ({
             item: d.item || '',
+            date: d.date ? new Date(d.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             quantity: d.quantity || 0,
             rate: d.rate || 0,
             amount: (d.quantity || 0) * (d.rate || 0)
           }))
-        : [{ item: '', quantity: 0, rate: 0, amount: 0 }],
+        : [{ item: '', date: new Date().toISOString().split('T')[0], quantity: 0, rate: 0, amount: 0 }],
       status: record.status || 'Active',
       stock: record.stock || 0,
       remarks: record.remarks || '',
@@ -312,8 +314,8 @@ export default function Projects() {
       }
     });
 
-    if (form.getValues('budget') !== total) {
-      form.setValue('budget', total, { shouldValidate: true });
+    if (form.getValues('expense') !== total) {
+      form.setValue('expense', total, { shouldValidate: true });
     }
     return total;
   };
@@ -321,7 +323,7 @@ export default function Projects() {
   const handleManualCalculate = (e) => {
     if (e) e.preventDefault();
     const total = syncCalculations();
-    toast.info(`Calculated Total Budget: ₹${total}`);
+    toast.info(`Calculated Total Expense: ₹${total}`);
   };
 
   // Auto-calculate logic
@@ -454,7 +456,7 @@ export default function Projects() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[650px] bg-surface text-text overflow-hidden flex flex-col max-h-[90vh]">
+        <DialogContent className="sm:max-w-[900px] bg-surface text-text overflow-hidden flex flex-col max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="font-bold">{editingRecord ? 'Update Project' : 'Register New Project'}</DialogTitle>
             <DialogDescription className="text-xs text-text2">
@@ -509,6 +511,20 @@ export default function Projects() {
                   </FormItem>
                 )} />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="budget" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Total Budget (₹)</FormLabel>
+                    <FormControl><Input type="number" {...field} className="bg-surface2 h-11" /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="expense" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Total Expense (₹)</FormLabel>
+                    <FormControl><Input type="number" {...field} className="bg-surface2 h-11" /></FormControl>
+                  </FormItem>
+                )} />
+              </div>
               <div className="space-y-3 border border-border rounded-lg p-3 bg-surface2/30">
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="text-[11px] font-bold uppercase tracking-wider text-accent flex items-center gap-2">
@@ -518,7 +534,7 @@ export default function Projects() {
                 
                 {fields.map((field, index) => (
                   <div key={field.id} className="grid grid-cols-12 gap-2 items-end group relative border-b border-border/50 pb-3 last:border-0 last:pb-0">
-                    <div className="col-span-12 md:col-span-5">
+                    <div className="col-span-12 md:col-span-3">
                       <FormField control={form.control} name={`expensiveDetails.${index}.item`} render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Item Name</FormLabel>
@@ -535,6 +551,14 @@ export default function Projects() {
                               <option key={item} value={item} />
                             ))}
                           </datalist>
+                        </FormItem>
+                      )} />
+                    </div>
+                    <div className="col-span-12 md:col-span-2">
+                      <FormField control={form.control} name={`expensiveDetails.${index}.date`} render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Date</FormLabel>
+                          <FormControl><Input type="date" {...field} className="bg-surface h-11 text-[13px]" /></FormControl>
                         </FormItem>
                       )} />
                     </div>
@@ -574,7 +598,7 @@ export default function Projects() {
                 
                 <div className="flex justify-between items-center pt-2 mt-2 border-t border-border/50">
                   <div className="flex items-center gap-2">
-                    <Button type="button" variant="ghost" size="sm" onClick={() => append({ item: '', quantity: 0, rate: 0, amount: 0 })} className="h-8 text-[11px] font-bold text-accent hover:bg-accent-light px-3 rounded-md">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => append({ item: '', date: new Date().toISOString().split('T')[0], quantity: 0, rate: 0, amount: 0 })} className="h-8 text-[11px] font-bold text-accent hover:bg-accent-light px-3 rounded-md">
                       <Plus size={14} className="mr-1.5" /> Add New Item
                     </Button>
                     <Button type="button" variant="ghost" size="sm" onClick={handleManualCalculate} className="h-8 text-[11px] font-bold text-text2 hover:bg-surface3 px-3 rounded-md border border-border">
@@ -589,20 +613,6 @@ export default function Projects() {
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField control={form.control} name="budget" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Total Budget (₹)</FormLabel>
-                    <FormControl><Input type="number" {...field} className="bg-surface2 h-11" /></FormControl>
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="expense" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Total Expense (₹)</FormLabel>
-                    <FormControl><Input type="number" {...field} className="bg-surface2 h-11" /></FormControl>
-                  </FormItem>
-                )} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="status" render={({ field }) => (

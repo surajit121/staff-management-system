@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, Package, CheckCircle, Edit2, Trash2, Loader2, Plus, ArrowRight, XCircle } from 'lucide-react';
+import { Truck, Package, CheckCircle, Edit2, Trash2, Loader2, Plus, ArrowRight, XCircle, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStock, useProjects } from '../hooks/useResource';
 import { cn, formatDate } from '../lib/utils';
@@ -10,6 +10,7 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 import { useAction } from '../context/ActionContext';
 import { downloadCSV } from '../lib/export';
+import { generateChallanPDF } from '../lib/pdf';
 
 import {
   Dialog,
@@ -60,7 +61,7 @@ export default function StockTransfer() {
   const filteredTransfers = (transfers || []).filter(t => {
     const q = searchQuery.toLowerCase();
     const matchesSearch = !searchQuery ||
-      t.item?.toLowerCase().includes(q) ||
+      (t.items || []).some(item => item.name?.toLowerCase().includes(q)) ||
       t.from?.toLowerCase().includes(q) ||
       t.to?.toLowerCase().includes(q) ||
       t.project?.toLowerCase().includes(q);
@@ -68,13 +69,23 @@ export default function StockTransfer() {
   });
 
   useEffect(() => {
-    const unregisterAdd = registerAddAction(() => setIsModalOpen(true));
+    const unregisterAdd = registerAddAction(() => {
+      form.reset({
+        items: [{ name: '', qty: 0 }],
+        from: 'Main Warehouse',
+        to: '',
+        project: '',
+        date: dateFilter,
+        status: 'In Transit',
+      });
+      setEditingRecord(null);
+      setIsModalOpen(true);
+    });
     const unregisterDownload = registerDownloadAction(() => {
       const exportData = filteredTransfers.map(t => ({
-        Item: t.item,
+        Items: (t.items || []).map(i => `${i.name} (x${i.qty})`).join(', '),
         From: t.from,
         To: t.to,
-        Quantity: t.qty,
         Project: t.project,
         Date: t.date,
         Status: t.status
@@ -119,31 +130,11 @@ export default function StockTransfer() {
   const onSubmit = async (values) => {
     try {
       if (editingRecord) {
-        // Individual edit uses the first item in the array
-        const updatePayload = {
-          item: values.items[0].name,
-          qty: values.items[0].qty,
-          from: values.from,
-          to: values.to,
-          project: values.project,
-          date: values.date,
-          status: values.status,
-        };
-        await update({ id: editingRecord._id, data: updatePayload });
+        await update({ id: editingRecord._id, data: values });
         toast.success("Stock transfer updated");
       } else {
-        // Create multiple entries at once
-        const bulkPayload = values.items.map(i => ({
-          item: i.name,
-          qty: i.qty,
-          from: values.from,
-          to: values.to,
-          project: values.project,
-          date: values.date,
-          status: values.status,
-        }));
-        await bulkCreate(bulkPayload);
-        toast.success(`${values.items.length} transfer(s) initiated`);
+        await create(values);
+        toast.success(`${values.items.length} item(s) transfer initiated`);
       }
       handleClose();
     } catch (error) {
@@ -154,7 +145,7 @@ export default function StockTransfer() {
   const handleEdit = (record) => {
     setEditingRecord(record);
     form.reset({
-      items: [{ name: record.item, qty: record.qty }],
+      items: record.items || [{ name: '', qty: 0 }],
       from: record.from,
       to: record.to,
       project: record.project,
@@ -225,8 +216,13 @@ export default function StockTransfer() {
                   className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
                 >
                   <td className="px-6 py-4">
-                    <div className="text-[14px] font-bold text-text mb-0.5">{t.item}</div>
-                    <div className="text-[11px] font-bold text-accent uppercase tracking-widest">{t.project}</div>
+                    <div className="text-[14px] font-bold text-text mb-0.5">
+                      {(t.items || []).length > 1 ? `${(t.items || []).length} Items` : t.items?.[0]?.name || 'No Items'}
+                    </div>
+                    <div className="text-[10px] text-text3 truncate max-w-[150px]">
+                      {(t.items || []).map(i => i.name).join(', ')}
+                    </div>
+                    <div className="text-[11px] font-bold text-accent uppercase tracking-widest mt-1">{t.project}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-[12.5px] font-medium text-text">
@@ -235,7 +231,9 @@ export default function StockTransfer() {
                     <div className="text-[11px] text-text3 font-mono mt-1 uppercase tracking-tighter">{formatDate(t.date)}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-[13px] font-bold text-text mb-1">{t.qty} Units</div>
+                    <div className="text-[13px] font-bold text-text mb-1">
+                      {(t.items || []).reduce((acc, curr) => acc + (Number(curr.qty) || 0), 0)} Total Units
+                    </div>
                     <span className={cn(
                       "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest",
                       t.status === 'Delivered' ? "bg-green-light text-green" :
@@ -243,7 +241,14 @@ export default function StockTransfer() {
                     )}>{t.status}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                    <div className="flex gap-1 justify-end items-center opacity-0 group-hover:opacity-100 transition-all">
+                      <button 
+                        onClick={() => generateChallanPDF(t)} 
+                        className="p-2 rounded-lg text-accent hover:bg-accent-light transition-colors"
+                        title="Print Challan"
+                      >
+                        <FileText size={16} />
+                      </button>
                       <button onClick={() => handleEdit(t)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
                         <Edit2 size={16} />
                       </button>
@@ -260,7 +265,7 @@ export default function StockTransfer() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-surface text-text">
+        <DialogContent className="sm:max-w-[600px] bg-surface text-text">
           <DialogHeader>
             <DialogTitle className="font-bold">{editingRecord ? 'Update Transfer' : 'New Stock Transfer'}</DialogTitle>
             <DialogDescription className="text-xs text-text2">
@@ -302,16 +307,14 @@ export default function StockTransfer() {
                     </div>
                   ))}
 
-                  {!editingRecord && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full h-8 border-dashed text-accent text-xs font-semibold mt-2"
-                      onClick={() => append({ name: '', qty: 0 })}
-                    >
-                      <Plus size={14} className="mr-1.5" /> Add More Items
-                    </Button>
-                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full h-9 border-2 border-dashed border-accent/20 text-accent hover:bg-accent/5 text-xs font-bold mt-2 rounded-xl transition-all"
+                    onClick={() => append({ name: '', qty: 0 })}
+                  >
+                    <Plus size={14} className="mr-2" /> Add More Items
+                  </Button>
 
                   <datalist id="item-suggestions">
                     {/* Cameras */}
