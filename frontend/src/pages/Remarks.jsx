@@ -1,0 +1,297 @@
+import React, { useState, useEffect } from 'react';
+import { ClipboardList, MapPin, Clock, Edit2, Trash2, Loader2, Plus, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRemarks, useStaff } from '../hooks/useResource';
+import { cn, formatDate } from '../lib/utils';
+import { Skeleton } from '../components/ui/skeleton';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+import { useAction } from '../context/ActionContext';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
+
+const remarkSchema = z.object({
+  staffId: z.string().min(1, "Staff selection is required"),
+  date: z.string().min(1, "Date is required"),
+  destination: z.string().min(2, "Destination is required"),
+  purpose: z.string().min(3, "Purpose is required"),
+  goingTime: z.string().min(1, "Going time is required"),
+  returnTime: z.string().min(1, "Return time is required"),
+});
+
+export default function Remarks() {
+  const { data: remarks, isLoading, create, update, remove, isCreating, isUpdating } = useRemarks();
+  const { staffList } = useStaff();
+  const { registerAddAction, searchQuery, dateFilter, setDateFilter, isFilterOpen } = useAction();
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+
+  const filteredRemarks = (remarks || []).filter(remark => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !searchQuery || 
+                          (remark.staffId?.name?.toLowerCase() || '').includes(q) ||
+                          (remark.destination?.toLowerCase() || '').includes(q) ||
+                          (remark.purpose?.toLowerCase() || '').includes(q);
+    const matchesDate = !isFilterOpen || !dateFilter || remark.date === dateFilter;
+    return matchesSearch && matchesDate;
+  });
+
+  useEffect(() => {
+    const unregisterAdd = registerAddAction(() => {
+      form.reset({
+        staffId: '',
+        date: dateFilter || new Date().toISOString().split('T')[0],
+        destination: '',
+        purpose: '',
+        goingTime: '',
+        returnTime: '',
+      });
+      setEditingRecord(null);
+      setIsModalOpen(true);
+    });
+    return () => unregisterAdd();
+  }, [registerAddAction, dateFilter]);
+
+  const form = useForm({
+    resolver: zodResolver(remarkSchema),
+    defaultValues: {
+      staffId: '',
+      date: dateFilter || new Date().toISOString().split('T')[0],
+      destination: '',
+      purpose: '',
+      goingTime: '',
+      returnTime: '',
+    },
+  });
+
+  const onSubmit = async (values) => {
+    try {
+      if (editingRecord) {
+        await update({ id: editingRecord._id, data: values });
+        toast.success("Remark updated");
+      } else {
+        await create(values);
+        toast.success("Remark added successfully");
+      }
+      handleClose();
+    } catch (error) {
+      toast.error(error.message || "Failed to save remark");
+    }
+  };
+
+  const handleEdit = (record) => {
+    setEditingRecord(record);
+    form.reset({
+      staffId: record.staffId?._id || record.staffId,
+      date: record.date,
+      destination: record.destination,
+      purpose: record.purpose,
+      goingTime: record.goingTime,
+      returnTime: record.returnTime,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Delete this remark?")) {
+      try {
+        await remove(id);
+        toast.success("Remark deleted");
+      } catch (error) {
+        toast.error("Failed to delete remark");
+      }
+    }
+  };
+
+  const handleClose = () => {
+    setIsModalOpen(false);
+    setEditingRecord(null);
+    form.reset();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-surface2/50 border-b border-border">
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Staff</th>
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Movement</th>
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Time</th>
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Date</th>
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <AnimatePresence>
+              {isLoading ? (
+                Array(5).fill(0).map((_, i) => (
+                  <tr key={i} className="border-b border-border"><td colSpan={5} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                ))
+              ) : filteredRemarks.length === 0 ? (
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-text3">No movements recorded for this period.</td></tr>
+              ) : filteredRemarks.map((remark) => (
+                <motion.tr 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  key={remark._id} 
+                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
+                        {remark.staffId?.initials || '??'}
+                      </div>
+                      <div>
+                        <div className="text-[14px] font-medium text-text">{remark.staffId?.name || 'Unknown'}</div>
+                        <div className="text-[11px] text-text3">{remark.staffId?.role}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 text-[13.5px] font-medium text-text">
+                       <MapPin size={12} className="text-accent" /> {remark.destination}
+                    </div>
+                    <div className="text-[11px] text-text3 mt-1 uppercase tracking-wider">{remark.purpose}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="text-center">
+                        <div className="text-[10px] text-text3 uppercase font-bold">Out</div>
+                        <div className="text-[13px] font-bold text-text">{remark.goingTime}</div>
+                      </div>
+                      <ArrowRight size={14} className="text-text3" />
+                      <div className="text-center">
+                        <div className="text-[10px] text-text3 uppercase font-bold">In</div>
+                        <div className="text-[13px] font-bold text-text">{remark.returnTime}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-[12px] font-bold text-text mb-0.5 uppercase tracking-tighter">{formatDate(remark.date)}</div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                      <button onClick={() => handleEdit(remark)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
+                        <Edit2 size={16} />
+                      </button>
+                      <button onClick={() => handleDelete(remark._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </AnimatePresence>
+          </tbody>
+        </table>
+      </div>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px] bg-surface text-text">
+          <DialogHeader>
+            <DialogTitle className="font-bold flex items-center gap-2">
+              <ClipboardList className="text-accent" size={20} />
+              {editingRecord ? 'Edit Remark' : 'Add New Remark'}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-text2">
+              Record staff movement details including destination, purpose, and times.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+              <FormField control={form.control} name="staffId" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Staff Member</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger className="bg-surface2"><SelectValue placeholder="Select Staff" /></SelectTrigger></FormControl>
+                    <SelectContent className="bg-surface border-border">
+                      {staffList.map(s => <SelectItem key={s._id} value={s._id}>{s.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="destination" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Where (Destination)</FormLabel>
+                    <FormControl><Input placeholder="e.g. Site A, Bank" {...field} className="bg-surface2" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="purpose" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Why (Purpose)</FormLabel>
+                    <FormControl><Input placeholder="e.g. Meeting, Deposit" {...field} className="bg-surface2" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="goingTime" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Going Time</FormLabel>
+                    <FormControl><Input type="time" {...field} className="bg-surface2" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="returnTime" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Coming Back Time</FormLabel>
+                    <FormControl><Input type="time" {...field} className="bg-surface2" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+
+              <FormField control={form.control} name="date" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Date</FormLabel>
+                  <FormControl><Input type="date" {...field} className="bg-surface2" /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <DialogFooter className="pt-4 border-t border-border">
+                <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
+                <Button type="submit" disabled={isCreating || isUpdating} className="bg-accent text-white">
+                  {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {editingRecord ? 'Update Remark' : 'Add Remark'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

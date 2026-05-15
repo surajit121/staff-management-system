@@ -52,6 +52,7 @@ export const materialService = createService('materials');
 export const billingService = createService('billing');
 export const salaryService = createService('salary-payments');
 export const leaveService = createService('leave');
+export const remarkService = createService('remarks');
 
 export const dashboardService = {
   getStats: () => api.get('/dashboard-stats').then(res => res.data),

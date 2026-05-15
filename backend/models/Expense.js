@@ -17,4 +17,8 @@ const expenseSchema = new mongoose.Schema({
   }],
 }, { timestamps: true });
 
+expenseSchema.index({ status: 1 });
+expenseSchema.index({ staffId: 1, date: -1 });
+expenseSchema.index({ date: -1 });
+
 export const Expense = mongoose.model('Expense', expenseSchema);

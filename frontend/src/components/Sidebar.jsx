@@ -14,6 +14,7 @@ import {
   FileText,
   Banknote,
   CalendarClock,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStaff } from '../hooks/useResource';
@@ -29,6 +30,7 @@ const navItems = [
   { label: 'Expenses',      path: '/expenses',   icon: Wallet },
   { label: 'Performance',   path: '/performance',icon: Activity },
   { label: 'Travel History',path: '/travel',     icon: Plane },
+  { label: 'Remarks',       path: '/remarks',    icon: ClipboardList },
   { label: 'Inventory', isHeader: true },
   { label: 'Project Master',path: '/projects',   icon: Building2 },
   { label: 'Stock Transfer',path: '/stock',      icon: Truck },

@@ -6,6 +6,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import compression from 'compression';
 
 // Import Models
 import { Staff } from './models/Staff.js';
@@ -20,9 +21,11 @@ import { Billing } from './models/Billing.js';
 import { SalaryPayment } from './models/SalaryPayment.js';
 import { Leave } from './models/Leave.js';
 import { Admin } from './models/Admin.js';
+import { Remark } from './models/Remark.js';
 import authRoutes from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
 import bcrypt from 'bcryptjs';
+import { cacheMiddleware, clearCache } from './utils/cache.js';
 
 dotenv.config();
 
@@ -56,13 +59,18 @@ const upload = multer({
   }
 });
 
+app.use(compression());
 app.use(cors());
 app.use(express.json());
 // Serve uploaded files as static assets
 app.use('/uploads', express.static(uploadsDir));
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
+// MongoDB Connection with pooling for performance
+mongoose.connect(process.env.MONGO_URI, {
+  maxPoolSize: 10,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+})
   .then(async () => {
     console.log('✅ MongoDB Connected');
     try {
@@ -84,11 +92,11 @@ app.use('/api/auth', authRoutes);
 
 // Generic CRUD Route Helper (for prototype speed)
 const createRoutes = (model, path, populate = null) => {
-  app.get(`/api/${path}`, authMiddleware, async (req, res) => {
+  app.get(`/api/${path}`, authMiddleware, cacheMiddleware(30), async (req, res) => {
     try {
-      let query = model.find().sort({ createdAt: -1 });
+      let query = model.find().sort({ createdAt: -1 }).lean();
       if (populate) {
-        query = query.populate(populate);
+        query = model.find().sort({ createdAt: -1 }).populate(populate).lean();
       }
       const data = await query;
       res.json(data);
@@ -101,6 +109,7 @@ const createRoutes = (model, path, populate = null) => {
     try {
       const newItem = new model(req.body);
       const savedItem = await newItem.save();
+      await clearCache(path);
       // If populate is specified, return the populated item
       if (populate) {
         const populatedItem = await model.findById(savedItem._id).populate(populate);
@@ -115,6 +124,7 @@ const createRoutes = (model, path, populate = null) => {
   app.put(`/api/${path}/:id`, authMiddleware, async (req, res) => {
     try {
       const updatedItem = await model.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      await clearCache(path);
       if (populate) {
         const populatedItem = await model.findById(updatedItem._id).populate(populate);
         return res.json(populatedItem);
@@ -128,6 +138,7 @@ const createRoutes = (model, path, populate = null) => {
   app.delete(`/api/${path}/:id`, authMiddleware, async (req, res) => {
     try {
       await model.findByIdAndDelete(req.params.id);
+      await clearCache(path);
       res.json({ message: 'Deleted successfully' });
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -176,6 +187,8 @@ app.post('/api/staff/bulk', authMiddleware, async (req, res) => {
       notes: 'Auto-generated upon bulk staff creation'
     }));
     await Attendance.insertMany(attendanceRecords);
+    await clearCache('staff');
+    await clearCache('attendance');
 
     res.status(201).json(savedStaff);
   } catch (error) {
@@ -188,6 +201,7 @@ app.post('/api/stock/bulk', authMiddleware, async (req, res) => {
   try {
     const transferData = req.body; // Array of stock transfer objects
     const savedTransfers = await StockTransfer.insertMany(transferData);
+    await clearCache('stock');
     res.status(201).json(savedTransfers);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -199,6 +213,7 @@ app.post('/api/materials/bulk', authMiddleware, async (req, res) => {
   try {
     const materialData = req.body; // Array of material usage objects
     const savedMaterials = await MaterialUsage.insertMany(materialData);
+    await clearCache('materials');
     res.status(201).json(savedMaterials);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -240,11 +255,12 @@ createRoutes(MaterialUsage, 'materials');
 createRoutes(Billing, 'billing');
 createRoutes(SalaryPayment, 'salary-payments', 'staffId');
 createRoutes(Leave, 'leave', 'staffId');
+createRoutes(Remark, 'remarks', 'staffId');
 
 // Special route for staff selection in attendance/expenses
-app.get('/api/staff-list', authMiddleware, async (req, res) => {
+app.get('/api/staff-list', authMiddleware, cacheMiddleware(300), async (req, res) => {
   try {
-    const staff = await Staff.find({}, 'name role color initials');
+    const staff = await Staff.find({}, 'name role color initials').lean();
     res.json(staff);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -252,7 +268,7 @@ app.get('/api/staff-list', authMiddleware, async (req, res) => {
 });
 
 // Dashboard Statistics Aggregator
-app.get('/api/dashboard-stats', authMiddleware, async (req, res) => {
+app.get('/api/dashboard-stats', authMiddleware, cacheMiddleware(60), async (req, res) => {
   try {
     const todayStr = new Date().toISOString().split('T')[0];
     

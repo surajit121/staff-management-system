@@ -11,7 +11,8 @@ import {
   billingService,
   dashboardService,
   salaryService,
-  leaveService
+  leaveService,
+  remarkService
 } from '../services/api';
 
 const useGenericResource = (key, service, extraInvalidationKeys = []) => {
@@ -62,6 +63,10 @@ const useGenericResource = (key, service, extraInvalidationKeys = []) => {
   };
 };
 
+export function useRemarks() {
+  return useGenericResource('remarks', remarkService);
+}
+
 export const useStaff = () => {
   const resource = useGenericResource('staff', staffService, ['staff-list', 'attendance', 'dashboard-stats']);
   const staffListQuery = useQuery({
@@ -81,6 +86,7 @@ export const useMaterials = () => useGenericResource('materials', materialServic
 export const useBilling = () => useGenericResource('billing', billingService);
 export const useSalary = () => useGenericResource('salary-payments', salaryService);
 export const useLeave = () => useGenericResource('leave', leaveService);
+// Remarks hook moved up
 
 export const useDashboardStats = () => {
   return useQuery({

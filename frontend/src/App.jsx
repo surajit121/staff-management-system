@@ -19,6 +19,7 @@ import MaterialUsage from './pages/MaterialUsage';
 import PendingBilling from './pages/PendingBilling';
 import SalaryPayment from './pages/SalaryPayment';
 import LeaveManagement from './pages/LeaveManagement';
+import Remarks from './pages/Remarks';
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ function App() {
                         <Route path="/billing"   element={<PendingBilling />} />
                         <Route path="/salary"    element={<SalaryPayment />} />
                         <Route path="/leave"     element={<LeaveManagement />} />
+                        <Route path="/remarks"   element={<Remarks />} />
                       </Routes>
                     </Layout>
                   </ProtectedRoute>

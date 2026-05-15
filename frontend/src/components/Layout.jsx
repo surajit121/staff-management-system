@@ -16,6 +16,9 @@ const pageInfo = {
   '/stock':      { title: 'Stock Transfer',      subtitle: 'Internal material movement' },
   '/materials':  { title: 'Material Usage Log',  subtitle: 'Usage, wastage, and returns' },
   '/billing':    { title: 'Pending Billing',     subtitle: 'Delivered but not billed items' },
+  '/salary':     { title: 'Salary Payments',     subtitle: 'Manage staff salaries' },
+  '/leave':      { title: 'Leave Management',    subtitle: 'Approve or reject leave' },
+  '/remarks':    { title: 'Staff Movement',      subtitle: 'Daily movement and remarks' },
 };
 
 export default function Layout({ children }) {

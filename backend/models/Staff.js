@@ -10,4 +10,6 @@ const staffSchema = new mongoose.Schema({
   initials: { type: String, required: true },
 }, { timestamps: true });
 
+staffSchema.index({ name: 1 });
+
 export const Staff = mongoose.model('Staff', staffSchema);
