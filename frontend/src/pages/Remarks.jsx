@@ -41,8 +41,8 @@ const remarkSchema = z.object({
   date: z.string().min(1, "Date is required"),
   destination: z.string().min(2, "Destination is required"),
   purpose: z.string().min(3, "Purpose is required"),
-  goingTime: z.string().min(1, "Going time is required"),
-  returnTime: z.string().min(1, "Return time is required"),
+  goingTime: z.string().optional(),
+  returnTime: z.string().optional(),
 });
 
 export default function Remarks() {
@@ -184,12 +184,12 @@ export default function Remarks() {
                     <div className="flex items-center gap-4">
                       <div className="text-center">
                         <div className="text-[10px] text-text3 uppercase font-bold">Out</div>
-                        <div className="text-[13px] font-bold text-text">{remark.goingTime}</div>
+                        <div className="text-[13px] font-bold text-text">{remark.goingTime || '--:--'}</div>
                       </div>
                       <ArrowRight size={14} className="text-text3" />
                       <div className="text-center">
                         <div className="text-[10px] text-text3 uppercase font-bold">In</div>
-                        <div className="text-[13px] font-bold text-text">{remark.returnTime}</div>
+                        <div className="text-[13px] font-bold text-text">{remark.returnTime || '--:--'}</div>
                       </div>
                     </div>
                   </td>
