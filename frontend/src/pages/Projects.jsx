@@ -375,84 +375,86 @@ export default function Projects() {
       </div>
 
       <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface2/50 border-b border-border">
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Project Info</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Location & Manager</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Financials</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
-                ))
-              ) : filteredProjects.map((p, idx) => (
-                <motion.tr 
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  key={p._id} 
-                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="text-[14.5px] font-bold text-text mb-0.5">{p.name}</div>
-                    <div className="flex items-center gap-2">
-                       <span className="px-1.5 py-0.5 rounded bg-surface2 text-[10px] font-mono text-text2">CODE: {p.code}</span>
-                       <span className={cn(
-                        "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest",
-                        p.status === 'Active' ? "bg-green-light text-green" : "bg-amber-light text-amber"
-                       )}>{p.status}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-1.5 text-[13px] text-text font-medium"><MapPin size={12} className="text-text3" /> {p.location}</div>
-                    <div className="flex items-center gap-1.5 text-[12px] text-text2 mt-1"><User size={12} className="text-text3" /> {p.manager}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[14px] font-bold text-text mb-1">
-                      Budget: ₹{(p.budget / 100000).toFixed(1)} Lac
-                    </div>
-                    <div className="flex flex-col gap-0.5 text-[12px]">
-                      <div className="flex justify-between items-center">
-                        <span className="text-red-500 font-semibold text-[11px]">Exp: ₹{((p.expense || 0) / 100000).toFixed(1)} Lac</span>
-                        <span className="text-amber-600 font-bold text-[11px]">
-                          Extra: ₹{(((p.expensiveDetails || []).reduce((acc, curr) => acc + curr.amount, 0)) / 100000).toFixed(1)} Lac
-                        </span>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[700px]">
+            <thead>
+              <tr className="bg-surface2/50 border-b border-border">
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Project Info</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Location & Manager</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Financials</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {isLoading ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                  ))
+                ) : filteredProjects.map((p, idx) => (
+                  <motion.tr 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    key={p._id} 
+                    className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="text-[14.5px] font-bold text-text mb-0.5">{p.name}</div>
+                      <div className="flex items-center gap-2">
+                         <span className="px-1.5 py-0.5 rounded bg-surface2 text-[10px] font-mono text-text2">CODE: {p.code}</span>
+                         <span className={cn(
+                          "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest",
+                          p.status === 'Active' ? "bg-green-light text-green" : "bg-amber-light text-amber"
+                         )}>{p.status}</span>
                       </div>
-                      <div className="text-[10px] text-text3 italic truncate max-w-[180px]">
-                        {(p.expensiveDetails || []).length > 0 ? (p.expensiveDetails || []).map(d => `${d.item} (x${d.quantity})`).join(', ') : 'No extra items'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1.5 text-[13px] text-text font-medium"><MapPin size={12} className="text-text3" /> {p.location}</div>
+                      <div className="flex items-center gap-1.5 text-[12px] text-text2 mt-1"><User size={12} className="text-text3" /> {p.manager}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[14px] font-bold text-text mb-1">
+                        Budget: ₹{(p.budget / 100000).toFixed(1)} Lac
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex gap-1 justify-end items-center">
-                      {p.attachments?.length > 0 && (
-                        <a
-                          href={p.attachments[p.attachments.length - 1].url}
-                          target="_blank" rel="noreferrer"
-                          className="p-2 rounded-lg text-accent hover:bg-accent-light transition-colors"
-                          title={`View: ${p.attachments[p.attachments.length - 1].originalName}`}
-                        >
-                          <Paperclip size={15} />
-                        </a>
-                      )}
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={() => handleEdit(p)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
-                          <Edit2 size={16} />
-                        </button>
-                        <button onClick={() => handleDelete(p._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
-                          <Trash2 size={16} />
-                        </button>
+                      <div className="flex flex-col gap-0.5 text-[12px]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-red-500 font-semibold text-[11px]">Exp: ₹{((p.expense || 0) / 100000).toFixed(1)} Lac</span>
+                          <span className="text-amber-600 font-bold text-[11px]">
+                            Extra: ₹{(((p.expensiveDetails || []).reduce((acc, curr) => acc + curr.amount, 0)) / 100000).toFixed(1)} Lac
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-text3 italic truncate max-w-[180px]">
+                          {(p.expensiveDetails || []).length > 0 ? (p.expensiveDetails || []).map(d => `${d.item} (x${d.quantity})`).join(', ') : 'No extra items'}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex gap-1 justify-end items-center">
+                        {p.attachments?.length > 0 && (
+                          <a
+                            href={p.attachments[p.attachments.length - 1].url}
+                            target="_blank" rel="noreferrer"
+                            className="p-2 rounded-lg text-accent hover:bg-accent-light transition-colors"
+                            title={`View: ${p.attachments[p.attachments.length - 1].originalName}`}
+                          >
+                            <Paperclip size={15} />
+                          </a>
+                        )}
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button onClick={() => handleEdit(p)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
+                            <Edit2 size={16} />
+                          </button>
+                          <button onClick={() => handleDelete(p._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

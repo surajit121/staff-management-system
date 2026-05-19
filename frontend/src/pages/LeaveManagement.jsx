@@ -143,85 +143,87 @@ export default function LeaveManagement() {
       </div>
 
       <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface2/50 border-b border-border">
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Staff Member</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Dates</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Type / Reason</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Status</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {(isLoading || isStaffLoading) ? (
-                Array(3).fill(0).map((_, i) => (
-                  <tr key={i} className="border-b border-border"><td colSpan={5} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
-                ))
-              ) : filteredLeaves.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-text3">No leave requests found.</td>
-                </tr>
-              ) : filteredLeaves.map((item) => (
-                <motion.tr
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  key={item._id}
-                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
-                        {item.staffId?.initials || '??'}
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[650px]">
+            <thead>
+              <tr className="bg-surface2/50 border-b border-border">
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Staff Member</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Dates</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Type / Reason</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Status</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {(isLoading || isStaffLoading) ? (
+                  Array(3).fill(0).map((_, i) => (
+                    <tr key={i} className="border-b border-border"><td colSpan={5} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                  ))
+                ) : filteredLeaves.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-text3">No leave requests found.</td>
+                  </tr>
+                ) : filteredLeaves.map((item) => (
+                  <motion.tr
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    key={item._id}
+                    className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
+                          {item.staffId?.initials || '??'}
+                        </div>
+                        <div className="text-[14px] font-medium text-text">{item.staffId?.name || 'Unknown'}</div>
                       </div>
-                      <div className="text-[14px] font-medium text-text">{item.staffId?.name || 'Unknown'}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-[13.5px] text-text2">
-                    <div className="font-mono">{formatDate(item.startDate?.split('T')[0])}</div>
-                    <div className="text-[11px] opacity-70">to {formatDate(item.endDate?.split('T')[0])}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[13px] font-bold text-text">{item.type}</div>
-                    <div className="text-[12px] text-text2 truncate max-w-[200px]" title={item.reason}>{item.reason}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={cn(
-                      "px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide flex items-center gap-1 w-max",
-                      item.status === 'Approved' ? "bg-green-light text-green" :
-                      item.status === 'Rejected' ? "bg-red-light text-red" : 
-                      "bg-amber-light text-amber"
-                    )}>
-                      {item.status === 'Approved' && <CheckCircle2 size={12} />}
-                      {item.status === 'Rejected' && <XCircle size={12} />}
-                      {item.status === 'Pending' && <Clock size={12} />}
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-all">
-                      {item.status === 'Pending' && (
-                        <>
-                          <button onClick={() => handleUpdateStatus(item._id, 'Approved')} title="Approve" className="p-2 rounded-lg text-green hover:bg-green-light">
-                            <Check size={16} />
-                          </button>
-                          <button onClick={() => handleUpdateStatus(item._id, 'Rejected')} title="Reject" className="p-2 rounded-lg text-red hover:bg-red-light">
-                            <XCircle size={16} />
-                          </button>
-                        </>
-                      )}
-                      <button onClick={() => handleDelete(item._id)} className="p-2 rounded-lg text-text3 hover:text-red hover:bg-red-light">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
+                    </td>
+                    <td className="px-6 py-4 text-[13.5px] text-text2">
+                      <div className="font-mono">{formatDate(item.startDate?.split('T')[0])}</div>
+                      <div className="text-[11px] opacity-70">to {formatDate(item.endDate?.split('T')[0])}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[13px] font-bold text-text">{item.type}</div>
+                      <div className="text-[12px] text-text2 truncate max-w-[200px]" title={item.reason}>{item.reason}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={cn(
+                        "px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide flex items-center gap-1 w-max",
+                        item.status === 'Approved' ? "bg-green-light text-green" :
+                        item.status === 'Rejected' ? "bg-red-light text-red" : 
+                        "bg-amber-light text-amber"
+                      )}>
+                        {item.status === 'Approved' && <CheckCircle2 size={12} />}
+                        {item.status === 'Rejected' && <XCircle size={12} />}
+                        {item.status === 'Pending' && <Clock size={12} />}
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                        {item.status === 'Pending' && (
+                          <>
+                            <button onClick={() => handleUpdateStatus(item._id, 'Approved')} title="Approve" className="p-2 rounded-lg text-green hover:bg-green-light">
+                              <Check size={16} />
+                            </button>
+                            <button onClick={() => handleUpdateStatus(item._id, 'Rejected')} title="Reject" className="p-2 rounded-lg text-red hover:bg-red-light">
+                              <XCircle size={16} />
+                            </button>
+                          </>
+                        )}
+                        <button onClick={() => handleDelete(item._id)} className="p-2 rounded-lg text-text3 hover:text-red hover:bg-red-light">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

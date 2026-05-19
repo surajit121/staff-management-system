@@ -223,73 +223,75 @@ export default function TravelHistory() {
       </div>
 
       <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface2/50 border-b border-border">
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Traveler & Mode</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Route</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Logistics</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Date</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
-                ))
-              ) : filteredTrips.map((trip, idx) => (
-                <motion.tr 
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  key={trip._id} 
-                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
-                        {trip.staffId?.initials || '??'}
-                      </div>
-                      <div>
-                        <div className="text-[14px] font-medium text-text">{trip.staffId?.name || 'Unknown'}</div>
-                        <div className="text-[11px] text-teal font-bold uppercase tracking-wide truncate max-w-[120px]">
-                          {(trip.travelDetails || []).map(d => d.mode).join(', ') || trip.mode}
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[750px]">
+            <thead>
+              <tr className="bg-surface2/50 border-b border-border">
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Traveler & Mode</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Route</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Logistics</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Date</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {isLoading ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                  ))
+                ) : filteredTrips.map((trip, idx) => (
+                  <motion.tr 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    key={trip._id} 
+                    className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
+                          {trip.staffId?.initials || '??'}
+                        </div>
+                        <div>
+                          <div className="text-[14px] font-medium text-text">{trip.staffId?.name || 'Unknown'}</div>
+                          <div className="text-[11px] text-teal font-bold uppercase tracking-wide truncate max-w-[120px]">
+                            {(trip.travelDetails || []).map(d => d.mode).join(', ') || trip.mode}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-[13.5px] font-medium text-text">
-                      {trip.from} <ArrowRight size={12} className="text-text3" /> {trip.to}
-                    </div>
-                    <div className="text-[11px] text-text3 mt-1 uppercase tracking-wider">{trip.purpose}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[13px] font-bold text-text mb-0.5">
-                      {(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.distance || 0), 0) || trip.distance} km
-                    </div>
-                    <div className="text-[11px] text-text2">
-                      {(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.duration || 0), 0) || trip.duration} min • ₹{(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.cost || 0), 0) || trip.cost}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[12px] font-bold text-text mb-0.5 uppercase tracking-tighter">{formatDate(trip.date)}</div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
-                      <button onClick={() => handleEdit(trip)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
-                        <Edit2 size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(trip._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-[13.5px] font-medium text-text">
+                        {trip.from} <ArrowRight size={12} className="text-text3" /> {trip.to}
+                      </div>
+                      <div className="text-[11px] text-text3 mt-1 uppercase tracking-wider">{trip.purpose}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[13px] font-bold text-text mb-0.5">
+                        {(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.distance || 0), 0) || trip.distance} km
+                      </div>
+                      <div className="text-[11px] text-text2">
+                        {(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.duration || 0), 0) || trip.duration} min • ₹{(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.cost || 0), 0) || trip.cost}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[12px] font-bold text-text mb-0.5 uppercase tracking-tighter">{formatDate(trip.date)}</div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                        <button onClick={() => handleEdit(trip)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(trip._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -452,7 +454,7 @@ export default function TravelHistory() {
             <DialogDescription className="text-[12px] text-text2">Full record of all movements and logistics logged in the system.</DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-auto border border-border rounded-lg bg-surface2/20">
-            <table className="w-full text-left border-collapse text-[12px]">
+            <table className="w-full text-left border-collapse text-[12px] min-w-[550px]">
               <thead className="sticky top-0 bg-surface border-b border-border z-10">
                 <tr>
                   <th className="px-4 py-3 font-bold uppercase text-text3 whitespace-nowrap">Staff</th>

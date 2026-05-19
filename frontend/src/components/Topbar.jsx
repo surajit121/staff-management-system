@@ -1,11 +1,11 @@
 import React from 'react';
-import { Calendar, Filter, Plus, Download, Search, X, Moon, Sun, LayoutPanelLeft, LogOut } from 'lucide-react';
+import { Calendar, Filter, Plus, Download, Search, X, Moon, Sun, LayoutPanelLeft, LogOut, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAction } from '../context/ActionContext';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function Topbar({ title, subtitle }) {
+export default function Topbar({ title, subtitle, onToggleSidebar }) {
   const {
     onAdd, onImport, onDownload,
     searchQuery, setSearchQuery,
@@ -34,12 +34,26 @@ export default function Topbar({ title, subtitle }) {
 
   return (
     <div
-      className="px-6 py-3.5 flex items-center gap-3 shrink-0 sticky top-0 z-50 backdrop-blur-md"
+      className="px-4 md:px-6 py-3 md:py-3.5 flex items-center gap-2.5 md:gap-3 shrink-0 sticky top-0 z-50 backdrop-blur-md"
       style={{
         backgroundColor: 'color-mix(in srgb, var(--color-surface) 85%, transparent)',
         borderBottom: '1px solid var(--color-border)',
       }}
     >
+      {/* Hamburger button for Mobile/Tablet */}
+      <button
+        onClick={onToggleSidebar}
+        className="flex lg:hidden h-[34px] w-[34px] shrink-0 rounded-lg items-center justify-center border shadow-sm transition-colors cursor-pointer hover:bg-surface2"
+        style={{
+          background: 'var(--color-surface2)',
+          borderColor: 'var(--color-border)',
+          color: 'var(--color-text2)'
+        }}
+        title="Open menu"
+      >
+        <Menu size={16} />
+      </button>
+
       {/* Title block */}
       <div className="flex items-center gap-3">
         <div className="hidden sm:flex h-10 w-10 rounded-xl items-center justify-center border shadow-sm"
@@ -80,7 +94,7 @@ export default function Topbar({ title, subtitle }) {
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-[160px] md:w-[220px] pl-8 pr-3 py-1.5 text-[13px] rounded-lg border focus:outline-none focus:ring-2 transition-all shadow-sm"
+            className="w-[110px] sm:w-[160px] md:w-[220px] pl-8 pr-3 py-1.5 text-[13px] rounded-lg border focus:outline-none focus:ring-2 transition-all shadow-sm"
             style={{
               background: 'var(--color-surface)',
               borderColor: 'var(--color-border)',

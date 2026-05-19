@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
   Users,
@@ -38,7 +38,7 @@ const navItems = [
   { label: 'Pending Billing',path: '/billing',   icon: FileText, badgeDot: true },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const [animated, setAnimated] = useState(false);
   const [highlighted, setHighlighted] = useState(false);
   const location = useLocation();
@@ -59,15 +59,8 @@ export default function Sidebar() {
     handleLogoClick();
   }, [location.pathname]);
 
-
-  return (
-    <div
-      className="w-60 h-screen flex flex-col shrink-0 overflow-y-auto"
-      style={{
-        background: 'var(--color-sidebar-bg)',
-        borderRight: '1px solid var(--color-sidebar-border)',
-      }}
-    >
+  const renderContent = () => (
+    <div className="flex flex-col h-full min-h-screen">
       {/* ── Header / Brand ── */}
       <div
         className="px-4 py-4 flex items-center gap-3 shrink-0"
@@ -125,7 +118,7 @@ export default function Sidebar() {
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 py-4 px-3 space-y-0.5">
+      <nav className="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto">
         {navItems.map((item, idx) =>
           item.isHeader ? (
             <div
@@ -139,6 +132,9 @@ export default function Sidebar() {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={() => {
+                if (onClose) onClose();
+              }}
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 relative group',
@@ -212,5 +208,50 @@ export default function Sidebar() {
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <>
+      {/* ── Desktop Sidebar (always visible on lg screens and up) ── */}
+      <div
+        className="w-60 h-screen flex flex-col shrink-0 overflow-y-auto hidden lg:flex"
+        style={{
+          background: 'var(--color-sidebar-bg)',
+          borderRight: '1px solid var(--color-sidebar-border)',
+        }}
+      >
+        {renderContent()}
+      </div>
+
+      {/* ── Mobile/Tablet Sidebar Drawer (below lg screens) ── */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Overlay Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden"
+            />
+            {/* Drawer Sliding Panel */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 w-60 h-full flex flex-col z-50 overflow-y-auto lg:hidden"
+              style={{
+                background: 'var(--color-sidebar-bg)',
+                boxShadow: 'var(--shadow-main)',
+              }}
+            >
+              {renderContent()}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

@@ -221,75 +221,77 @@ export default function PendingBilling() {
       </div>
 
        <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden animate-slide-up" style={{ animationDelay: '0.1s' }}>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface2/50 border-b border-border">
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Item & Vendor</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Billing Project</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Financials</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Docs</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
-                ))
-              ) : filteredBills.map((b, idx) => (
-                <motion.tr 
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  key={b._id} 
-                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="text-[14px] font-bold text-text mb-0.5">{b.item}</div>
-                    <div className="text-[11px] font-bold text-text3 uppercase tracking-widest">Supplier: {b.vendor}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[13px] font-bold text-accent uppercase tracking-widest mb-1">{b.project}</div>
-                    <div className="text-[11px] text-text3 font-mono uppercase tracking-tighter">Delivered {formatDate(b.deliveredDate)}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[14.5px] font-bold text-text">₹{b.amount.toLocaleString()}</div>
-                    <span className={cn(
-                        "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest",
-                        b.status === 'Billed' ? "bg-green-light text-green" :
-                        b.status === 'Cancelled' ? "bg-red-light text-red" : "bg-amber-light text-amber"
-                    )}>{b.status}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {(b.attachments || []).map((att, i) => (
-                        <a 
-                          key={i} 
-                          href={att.url} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="p-1.5 rounded bg-surface2 text-text2 hover:text-accent hover:bg-accent-light transition-all"
-                          title={att.originalName}
-                        >
-                          <Paperclip size={14} />
-                        </a>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex gap-1 justify-end row-actions">
-                      <button onClick={() => handleEdit(b)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
-                        <Edit2 size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(b._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[700px]">
+            <thead>
+              <tr className="bg-surface2/50 border-b border-border">
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Item & Vendor</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Billing Project</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Financials</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Docs</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {isLoading ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                  ))
+                ) : filteredBills.map((b, idx) => (
+                  <motion.tr 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    key={b._id} 
+                    className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="text-[14px] font-bold text-text mb-0.5">{b.item}</div>
+                      <div className="text-[11px] font-bold text-text3 uppercase tracking-widest">Supplier: {b.vendor}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[13px] font-bold text-accent uppercase tracking-widest mb-1">{b.project}</div>
+                      <div className="text-[11px] text-text3 font-mono uppercase tracking-tighter">Delivered {formatDate(b.deliveredDate)}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[14.5px] font-bold text-text">₹{b.amount.toLocaleString()}</div>
+                      <span className={cn(
+                          "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest",
+                          b.status === 'Billed' ? "bg-green-light text-green" :
+                          b.status === 'Cancelled' ? "bg-red-light text-red" : "bg-amber-light text-amber"
+                      )}>{b.status}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {(b.attachments || []).map((att, i) => (
+                          <a 
+                            key={i} 
+                            href={att.url} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="p-1.5 rounded bg-surface2 text-text2 hover:text-accent hover:bg-accent-light transition-all"
+                            title={att.originalName}
+                          >
+                            <Paperclip size={14} />
+                          </a>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex gap-1 justify-end row-actions">
+                        <button onClick={() => handleEdit(b)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(b._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
       </div>
 
        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

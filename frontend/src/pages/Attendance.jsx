@@ -247,98 +247,100 @@ export default function Attendance() {
       </div>
 
       <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface2/50 border-b border-border">
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Staff Member</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Date</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Status</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Log Times</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {(isLoading || isStaffLoading) ? (
-                Array(5).fill(0).map((_, i) => (
-                  <tr key={i} className="border-b border-border"><td colSpan={5} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
-                ))
-              ) : mergedAttendance.map((item, idx) => (
-                <motion.tr
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  key={item._id}
-                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
-                        {item.staffId?.initials || '??'}
-                      </div>
-                      <div className="text-[14px] font-medium text-text">{item.staffId?.name || 'Unknown'}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-[13.5px] text-text2 font-mono">
-                    {formatDate(displayDate)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={cn(
-                      "px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide",
-                      item.status === 'Present' ? "bg-green-light text-green" :
-                        item.status === 'Absent' ? "bg-red-light text-red" : 
-                        item.isNotMarked ? "bg-surface2 text-text3" : "bg-amber-light text-amber"
-                    )}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[12px] text-text2 font-mono">
-                      {item.record?.checkIn || '--:--'} → {item.record?.checkOut || '--:--'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
-                      <button onClick={() => setCalendarStaff(item.staffId)} title="View Monthly Calendar" className="p-2 rounded-lg text-text2 hover:bg-green-light hover:text-green">
-                        <Calendar size={16} />
-                      </button>
-                      {item.isNotMarked ? (
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => quickMark(item.staffId._id, 'Present')} 
-                            title="Quick Mark Present" 
-                            className="w-8 h-8 rounded-full bg-green/10 text-green hover:bg-green hover:text-white flex items-center justify-center transition-all border border-green/20"
-                          >
-                            <CheckCircle2 size={16} />
-                          </button>
-                          <button 
-                            onClick={() => quickMark(item.staffId._id, 'Absent')} 
-                            title="Quick Mark Absent" 
-                            className="w-8 h-8 rounded-full bg-red/10 text-red hover:bg-red hover:text-white flex items-center justify-center transition-all border border-red/20"
-                          >
-                            <XCircle size={16} />
-                          </button>
-                          <button onClick={() => handleMark(item.staffId)} className="p-2 rounded-lg text-text3 hover:bg-surface2 hover:text-text flex items-center gap-1 text-[11px] font-bold">
-                            <Plus size={14} /> MORE
-                          </button>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[650px]">
+            <thead>
+              <tr className="bg-surface2/50 border-b border-border">
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Staff Member</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Date</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Status</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Log Times</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {(isLoading || isStaffLoading) ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <tr key={i} className="border-b border-border"><td colSpan={5} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                  ))
+                ) : mergedAttendance.map((item, idx) => (
+                  <motion.tr
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    key={item._id}
+                    className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
+                          {item.staffId?.initials || '??'}
                         </div>
-                      ) : (
-                        <>
-                          <button onClick={() => handleEdit(item)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
-                            <Edit2 size={16} />
-                          </button>
-                          <button onClick={() => handleDelete(item.record._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
-                            <Trash2 size={16} />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
+                        <div className="text-[14px] font-medium text-text">{item.staffId?.name || 'Unknown'}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-[13.5px] text-text2 font-mono">
+                      {formatDate(displayDate)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={cn(
+                        "px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide",
+                        item.status === 'Present' ? "bg-green-light text-green" :
+                          item.status === 'Absent' ? "bg-red-light text-red" : 
+                          item.isNotMarked ? "bg-surface2 text-text3" : "bg-amber-light text-amber"
+                      )}>
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[12px] text-text2 font-mono">
+                        {item.record?.checkIn || '--:--'} → {item.record?.checkOut || '--:--'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                        <button onClick={() => setCalendarStaff(item.staffId)} title="View Monthly Calendar" className="p-2 rounded-lg text-text2 hover:bg-green-light hover:text-green">
+                          <Calendar size={16} />
+                        </button>
+                        {item.isNotMarked ? (
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => quickMark(item.staffId._id, 'Present')} 
+                              title="Quick Mark Present" 
+                              className="w-8 h-8 rounded-full bg-green/10 text-green hover:bg-green hover:text-white flex items-center justify-center transition-all border border-green/20"
+                            >
+                              <CheckCircle2 size={16} />
+                            </button>
+                            <button 
+                              onClick={() => quickMark(item.staffId._id, 'Absent')} 
+                              title="Quick Mark Absent" 
+                              className="w-8 h-8 rounded-full bg-red/10 text-red hover:bg-red hover:text-white flex items-center justify-center transition-all border border-red/20"
+                            >
+                              <XCircle size={16} />
+                            </button>
+                            <button onClick={() => handleMark(item.staffId)} className="p-2 rounded-lg text-text3 hover:bg-surface2 hover:text-text flex items-center gap-1 text-[11px] font-bold">
+                              <Plus size={14} /> MORE
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <button onClick={() => handleEdit(item)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
+                              <Edit2 size={16} />
+                            </button>
+                            <button onClick={() => handleDelete(item.record._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

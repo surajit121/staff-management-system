@@ -254,66 +254,68 @@ export default function SalaryPayment() {
       </div>
 
       <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface2/50 border-b border-border">
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Staff & Month</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Details</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Net Pay</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
-                ))
-              ) : filteredSalaries.map((s, idx) => (
-                <motion.tr 
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  key={s._id} 
-                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
-                        {s.staffId?.initials || '??'}
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[650px]">
+            <thead>
+              <tr className="bg-surface2/50 border-b border-border">
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Staff & Month</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Details</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Net Pay</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {isLoading ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                  ))
+                ) : filteredSalaries.map((s, idx) => (
+                  <motion.tr 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    key={s._id} 
+                    className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
+                          {s.staffId?.initials || '??'}
+                        </div>
+                        <div>
+                          <div className="text-[14px] font-medium text-text">{s.staffId?.name || 'Unknown'}</div>
+                          <div className="text-[11px] text-accent font-bold uppercase tracking-wide">{s.month}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-[14px] font-medium text-text">{s.staffId?.name || 'Unknown'}</div>
-                        <div className="text-[11px] text-accent font-bold uppercase tracking-wide">{s.month}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[13.5px] font-medium text-text">Base: ₹{s.amount} | Ded: ₹{s.deductions}</div>
+                      <div className="text-[11.5px] text-text3 font-mono">{formatDate(s.paymentDate)} • {s.paymentMethod}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[15px] font-bold text-text">₹{s.netPay?.toLocaleString()}</div>
+                      <div className={cn(
+                        "inline-flex mt-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                        s.status === 'Paid' ? "bg-green-light text-green" : "bg-amber-light text-amber"
+                      )}>
+                        {s.status}
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[13.5px] font-medium text-text">Base: ₹{s.amount} | Ded: ₹{s.deductions}</div>
-                    <div className="text-[11.5px] text-text3 font-mono">{formatDate(s.paymentDate)} • {s.paymentMethod}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[15px] font-bold text-text">₹{s.netPay?.toLocaleString()}</div>
-                    <div className={cn(
-                      "inline-flex mt-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                      s.status === 'Paid' ? "bg-green-light text-green" : "bg-amber-light text-amber"
-                    )}>
-                      {s.status}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
-                      <button onClick={() => handleEdit(s)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
-                        <Edit2 size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(s._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                        <button onClick={() => handleEdit(s)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(s._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -418,7 +420,7 @@ export default function SalaryPayment() {
             <DialogDescription className="text-[12px] text-text2">Full record of all salaries logged in the system.</DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-auto border border-border rounded-lg bg-surface2/20">
-            <table className="w-full text-left border-collapse text-[12px]">
+            <table className="w-full text-left border-collapse text-[12px] min-w-[550px]">
               <thead className="sticky top-0 bg-surface border-b border-border z-10">
                 <tr>
                   <th className="px-4 py-3 font-bold uppercase text-text3 whitespace-nowrap">Staff & Month</th>

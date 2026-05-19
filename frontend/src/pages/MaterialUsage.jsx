@@ -250,63 +250,65 @@ export default function MaterialUsage() {
       </div>
 
        <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface2/50 border-b border-border">
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Item & Project</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Consumption Details</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Logistics</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
-                ))
-              ) : filteredUsage.map((u, idx) => (
-                <motion.tr 
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  key={u._id} 
-                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="text-[14px] font-bold text-text mb-0.5">{u.item}</div>
-                    <div className="text-[11px] font-bold text-accent uppercase tracking-widest">{u.project}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col gap-1">
-                      <div className="text-[13px] font-medium text-text flex justify-between items-center pr-10">
-                        <span>Used:</span> <span className="font-bold">{u.used} Units</span>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[650px]">
+            <thead>
+              <tr className="bg-surface2/50 border-b border-border">
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Item & Project</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Consumption Details</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Logistics</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {isLoading ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                  ))
+                ) : filteredUsage.map((u, idx) => (
+                  <motion.tr 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    key={u._id} 
+                    className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="text-[14px] font-bold text-text mb-0.5">{u.item}</div>
+                      <div className="text-[11px] font-bold text-accent uppercase tracking-widest">{u.project}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1">
+                        <div className="text-[13px] font-medium text-text flex justify-between items-center pr-10">
+                          <span>Used:</span> <span className="font-bold">{u.used} Units</span>
+                        </div>
+                        <div className="text-[11px] text-red flex justify-between items-center pr-10">
+                          <span>Wasted:</span> <span>{u.wasted} Units</span>
+                        </div>
+                        <div className="text-[11px] text-green flex justify-between items-center pr-10">
+                          <span>Returned:</span> <span>{u.returned} Units</span>
+                        </div>
                       </div>
-                      <div className="text-[11px] text-red flex justify-between items-center pr-10">
-                        <span>Wasted:</span> <span>{u.wasted} Units</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[12px] font-bold text-text mb-0.5">By {u.loggedBy}</div>
+                      <div className="text-[11px] text-text3 font-mono uppercase tracking-tighter">{formatDate(u.date)}</div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                        <button onClick={() => handleEdit(u)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(u._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                      <div className="text-[11px] text-green flex justify-between items-center pr-10">
-                        <span>Returned:</span> <span>{u.returned} Units</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[12px] font-bold text-text mb-0.5">By {u.loggedBy}</div>
-                    <div className="text-[11px] text-text3 font-mono uppercase tracking-tighter">{formatDate(u.date)}</div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
-                      <button onClick={() => handleEdit(u)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
-                        <Edit2 size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(u._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
       </div>
 
        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

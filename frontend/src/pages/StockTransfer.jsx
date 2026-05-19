@@ -194,74 +194,76 @@ export default function StockTransfer() {
       </div>
 
       <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface2/50 border-b border-border">
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Item & Project</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Transfer Path</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Qty & Status</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
-                ))
-              ) : filteredTransfers.map((t, idx) => (
-                <motion.tr
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  key={t._id}
-                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="text-[14px] font-bold text-text mb-0.5">
-                      {(t.items || []).length > 1 ? `${(t.items || []).length} Items` : t.items?.[0]?.name || 'No Items'}
-                    </div>
-                    <div className="text-[10px] text-text3 truncate max-w-[150px]">
-                      {(t.items || []).map(i => i.name).join(', ')}
-                    </div>
-                    <div className="text-[11px] font-bold text-accent uppercase tracking-widest mt-1">{t.project}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-[12.5px] font-medium text-text">
-                      {t.from} <ArrowRight size={10} className="text-text3" /> {t.to}
-                    </div>
-                    <div className="text-[11px] text-text3 font-mono mt-1 uppercase tracking-tighter">{formatDate(t.date)}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[13px] font-bold text-text mb-1">
-                      {(t.items || []).reduce((acc, curr) => acc + (Number(curr.qty) || 0), 0)} Total Units
-                    </div>
-                    <span className={cn(
-                      "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest",
-                      t.status === 'Delivered' ? "bg-green-light text-green" :
-                        t.status === 'Cancelled' ? "bg-red-light text-red" : "bg-amber-light text-amber"
-                    )}>{t.status}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex gap-1 justify-end items-center opacity-0 group-hover:opacity-100 transition-all">
-                      <button 
-                        onClick={() => generateChallanPDF(t)} 
-                        className="p-2 rounded-lg text-accent hover:bg-accent-light transition-colors"
-                        title="Print Challan"
-                      >
-                        <FileText size={16} />
-                      </button>
-                      <button onClick={() => handleEdit(t)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
-                        <Edit2 size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(t._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[650px]">
+            <thead>
+              <tr className="bg-surface2/50 border-b border-border">
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Item & Project</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Transfer Path</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Qty & Status</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {isLoading ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                  ))
+                ) : filteredTransfers.map((t, idx) => (
+                  <motion.tr
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    key={t._id}
+                    className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="text-[14px] font-bold text-text mb-0.5">
+                        {(t.items || []).length > 1 ? `${(t.items || []).length} Items` : t.items?.[0]?.name || 'No Items'}
+                      </div>
+                      <div className="text-[10px] text-text3 truncate max-w-[150px]">
+                        {(t.items || []).map(i => i.name).join(', ')}
+                      </div>
+                      <div className="text-[11px] font-bold text-accent uppercase tracking-widest mt-1">{t.project}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-[12.5px] font-medium text-text">
+                        {t.from} <ArrowRight size={10} className="text-text3" /> {t.to}
+                      </div>
+                      <div className="text-[11px] text-text3 font-mono mt-1 uppercase tracking-tighter">{formatDate(t.date)}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[13px] font-bold text-text mb-1">
+                        {(t.items || []).reduce((acc, curr) => acc + (Number(curr.qty) || 0), 0)} Total Units
+                      </div>
+                      <span className={cn(
+                        "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest",
+                        t.status === 'Delivered' ? "bg-green-light text-green" :
+                          t.status === 'Cancelled' ? "bg-red-light text-red" : "bg-amber-light text-amber"
+                      )}>{t.status}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex gap-1 justify-end items-center opacity-0 group-hover:opacity-100 transition-all">
+                        <button 
+                          onClick={() => generateChallanPDF(t)} 
+                          className="p-2 rounded-lg text-accent hover:bg-accent-light transition-colors"
+                          title="Print Challan"
+                        >
+                          <FileText size={16} />
+                        </button>
+                        <button onClick={() => handleEdit(t)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(t._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

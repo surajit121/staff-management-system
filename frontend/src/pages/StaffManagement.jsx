@@ -224,82 +224,84 @@ export default function StaffManagement() {
       </div>
 
       <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface2/50 border-b border-border">
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Staff Member</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Role & Dept</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Contact</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
-                ))
-              ) : filteredStaff.map((s, idx) => (
-                <motion.tr
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  key={s._id}
-                  className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all cursor-pointer group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs"
-                        style={{ backgroundColor: `${s.color}15`, color: s.color }}
-                      >
-                        {s.initials}
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[650px]">
+            <thead>
+              <tr className="bg-surface2/50 border-b border-border">
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Staff Member</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Role & Dept</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Contact</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {isLoading ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
+                  ))
+                ) : filteredStaff.map((s, idx) => (
+                  <motion.tr
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    key={s._id}
+                    className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all cursor-pointer group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs"
+                          style={{ backgroundColor: `${s.color}15`, color: s.color }}
+                        >
+                          {s.initials}
+                        </div>
+                        <div>
+                          <div className="text-[14px] font-semibold text-text">{s.name}</div>
+                          <div className="text-[12px] text-text3">#{s._id.slice(-4)}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-[14px] font-semibold text-text">{s.name}</div>
-                        <div className="text-[12px] text-text3">#{s._id.slice(-4)}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-[13.5px] font-medium text-text">{s.role}</div>
+                      <div className="inline-flex mt-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-accent-light text-accent uppercase tracking-wide">
+                        {s.dept}
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[13.5px] font-medium text-text">{s.role}</div>
-                    <div className="inline-flex mt-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-accent-light text-accent uppercase tracking-wide">
-                      {s.dept}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 text-[12.5px] text-text2">
-                        <Phone size={12} className="text-text3" />
-                        {s.phone}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-[12.5px] text-text2">
+                          <Phone size={12} className="text-text3" />
+                          {s.phone}
+                        </div>
+                        <div className="flex items-center gap-2 text-[12.5px] text-text2">
+                          <Mail size={12} className="text-text3" />
+                          {s.email}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-[12.5px] text-text2">
-                        <Mail size={12} className="text-text3" />
-                        {s.email}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                        <button
+                          onClick={() => handleEdit(s)}
+                          className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent transition-all"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(s._id)}
+                          className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
-                      <button
-                        onClick={() => handleEdit(s)}
-                        className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent transition-all"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(s._id)}
-                        className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red transition-all"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
