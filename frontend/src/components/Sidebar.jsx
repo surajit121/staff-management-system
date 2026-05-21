@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStaff } from '../hooks/useResource';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
   { label: 'Main', isHeader: true },
@@ -43,6 +44,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const [highlighted, setHighlighted] = useState(false);
   const location = useLocation();
   const { data: staffData } = useStaff();
+  const { user } = useAuth();
   const staffCount = staffData?.length || 0;
 
   const handleLogoClick = () => {
@@ -194,6 +196,46 @@ export default function Sidebar({ isOpen, onClose }) {
           )
         )}
       </nav>
+
+      {/* ── User Profile Card ── */}
+      {user && (
+        <div 
+          className="mx-3 mb-3 px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all duration-300 hover:bg-white/[0.05]"
+          style={{ 
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          }}
+        >
+          {/* Avatar with beautiful gradient */}
+          <div 
+            className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white shrink-0 shadow-sm transition-transform duration-300 hover:scale-105"
+            style={{
+              background: 'linear-gradient(135deg, var(--color-accent) 0%, #6B8DF9 100%)',
+            }}
+          >
+            {(user.username || 'A').trim().charAt(0).toUpperCase()}
+          </div>
+
+          {/* User Details */}
+          <div className="flex-1 min-w-0">
+            <div 
+              className="text-[13px] font-bold truncate leading-snug"
+              style={{ color: 'var(--color-sidebar-text)' }}
+              title={user.username}
+            >
+              {user.username}
+            </div>
+            <div 
+              className="text-[10px] font-medium truncate mt-0.5"
+              style={{ color: 'var(--color-sidebar-text2)' }}
+              title={user.email || 'admin@company.com'}
+            >
+              {user.email || 'admin@company.com'}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Footer ── */}
       <div

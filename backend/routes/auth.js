@@ -6,6 +6,10 @@ import { sendEmail } from '../utils/sendEmail.js';
 
 const router = express.Router();
 
+const escapeRegex = (string) => {
+  return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+};
+
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -14,7 +18,10 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Please enter all fields' });
     }
 
-    const admin = await Admin.findOne({ username });
+    const trimmedUsername = username.trim();
+    const admin = await Admin.findOne({
+      username: { $regex: new RegExp(`^\\s*${escapeRegex(trimmedUsername)}\\s*$`, 'i') }
+    });
     if (!admin) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -30,7 +37,8 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         id: admin._id,
-        username: admin.username
+        username: admin.username,
+        email: admin.email
       }
     });
   } catch (error) {
@@ -46,7 +54,15 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Please enter all fields' });
     }
 
-    const existingAdmin = await Admin.findOne({ $or: [{ username }, { email }] });
+    const trimmedUsername = username.trim();
+    const trimmedEmail = email.trim();
+
+    const existingAdmin = await Admin.findOne({
+      $or: [
+        { username: { $regex: new RegExp(`^\\s*${escapeRegex(trimmedUsername)}\\s*$`, 'i') } },
+        { email: { $regex: new RegExp(`^\\s*${escapeRegex(trimmedEmail)}\\s*$`, 'i') } }
+      ]
+    });
     if (existingAdmin) {
       return res.status(400).json({ message: 'Username or Email already exists' });
     }
@@ -55,8 +71,8 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newAdmin = new Admin({
-      username,
-      email,
+      username: trimmedUsername,
+      email: trimmedEmail,
       password: hashedPassword
     });
 
@@ -68,7 +84,8 @@ router.post('/register', async (req, res) => {
       token,
       user: {
         id: newAdmin._id,
-        username: newAdmin.username
+        username: newAdmin.username,
+        email: newAdmin.email
       }
     });
   } catch (error) {
@@ -84,7 +101,10 @@ router.post('/forgot-password', async (req, res) => {
       return res.status(400).json({ message: 'Please enter your email' });
     }
 
-    const admin = await Admin.findOne({ email });
+    const trimmedEmail = email.trim();
+    const admin = await Admin.findOne({
+      email: { $regex: new RegExp(`^\\s*${escapeRegex(trimmedEmail)}\\s*$`, 'i') }
+    });
     if (!admin) {
       return res.status(404).json({ message: 'No account found with that email' });
     }
@@ -126,8 +146,9 @@ router.post('/verify-reset-code', async (req, res) => {
     
     if (!email || !code) return res.status(400).json({ message: 'Email and code are required' });
 
+    const trimmedEmail = email.trim();
     const admin = await Admin.findOne({ 
-      email, 
+      email: { $regex: new RegExp(`^\\s*${escapeRegex(trimmedEmail)}\\s*$`, 'i') }, 
       resetCode: code, 
       resetCodeExpires: { $gt: Date.now() } 
     });
@@ -148,8 +169,9 @@ router.post('/reset-password', async (req, res) => {
     
     if (!email || !code || !newPassword) return res.status(400).json({ message: 'Missing required fields' });
 
+    const trimmedEmail = email.trim();
     const admin = await Admin.findOne({ 
-      email, 
+      email: { $regex: new RegExp(`^\\s*${escapeRegex(trimmedEmail)}\\s*$`, 'i') }, 
       resetCode: code, 
       resetCodeExpires: { $gt: Date.now() } 
     });
