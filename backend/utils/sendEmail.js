@@ -11,10 +11,13 @@ export const sendEmail = async (options) => {
     return true; // Pretend it succeeded
   }
 
+  const parsedPort = parseInt(SMTP_PORT) || 465;
+  const isSecure = SMTP_SECURE === 'true' || SMTP_SECURE === true || parsedPort === 465;
+
   const transporter = nodemailer.createTransport({
     host: SMTP_HOST || 'smtp.gmail.com',
-    port: SMTP_PORT || 465,
-    secure: SMTP_SECURE === 'true',
+    port: parsedPort,
+    secure: isSecure,
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASS
@@ -23,7 +26,7 @@ export const sendEmail = async (options) => {
 
   const mailOptions = {
     from: SMTP_FROM || `StaffSync Pro <${SMTP_USER}>`,
-    to: options.email,
+    to: options.email ? options.email.trim() : '',
     subject: options.subject,
     html: options.message,
   };
