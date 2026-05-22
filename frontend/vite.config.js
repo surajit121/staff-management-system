@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename)
 export default defineConfig({
   plugins: [
     babel({
-      presets: [reactCompilerPreset()],
+      presets: [reactCompilerPreset({ compilationMode: 'annotation' })],
       exclude: 'node_modules/**'
     }),
     react(),
