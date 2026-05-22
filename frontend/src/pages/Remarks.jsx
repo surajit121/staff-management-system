@@ -35,6 +35,7 @@ import {
 } from "../components/ui/select";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
+import { TimePicker } from "../components/ui/time-picker";
 
 const remarkSchema = z.object({
   staffId: z.string().min(1, "Staff selection is required"),
@@ -262,14 +263,14 @@ export default function Remarks() {
                 <FormField control={form.control} name="goingTime" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Going Time</FormLabel>
-                    <FormControl><Input type="time" {...field} className="bg-surface2" /></FormControl>
+                    <FormControl><TimePicker value={field.value} onChange={field.onChange} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="returnTime" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Coming Back Time</FormLabel>
-                    <FormControl><Input type="time" {...field} className="bg-surface2" /></FormControl>
+                    <FormControl><TimePicker value={field.value} onChange={field.onChange} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
