@@ -323,20 +323,27 @@ export default function Expenses() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-surface text-text">
-          <DialogHeader>
-            <DialogTitle className="font-bold">{editingRecord ? 'Edit Expense' : 'Log Expense'}</DialogTitle>
-            <DialogDescription className="text-xs text-text3">
-              {editingRecord ? 'Update the details of this expense record.' : 'Enter the details for a new expense request.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[550px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+          <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
+            <DialogHeader className="space-y-0.5">
+              <DialogTitle className="text-lg font-bold tracking-tight text-text">{editingRecord ? 'Edit Expense' : 'Log Expense'}</DialogTitle>
+              <DialogDescription className="text-xs text-text2">
+                {editingRecord ? 'Update the details of this expense record.' : 'Enter the details for a new expense request.'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-5 space-y-4">
               <FormField control={form.control} name="staffId" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Staff member</FormLabel>
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Staff member</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl><SelectTrigger className="bg-surface2"><SelectValue placeholder="Choose a member" /></SelectTrigger></FormControl>
+                    <FormControl>
+                      <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                        <SelectValue placeholder="Choose a member" />
+                      </SelectTrigger>
+                    </FormControl>
                     <SelectContent className="bg-surface border-border">
                       {staffList.map(s => <SelectItem key={s._id} value={s._id}>{s.name}</SelectItem>)}
                     </SelectContent>
@@ -346,16 +353,22 @@ export default function Expenses() {
               )} />
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="date" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Date</FormLabel>
-                    <FormControl><Input type="date" {...field} className="bg-surface2" /></FormControl>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="category" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Category</FormLabel>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Category</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger className="bg-surface2"><SelectValue /></SelectTrigger></FormControl>
+                      <FormControl>
+                        <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent className="bg-surface border-border">
                         {['Travel', 'Entertainment', 'Supplies', 'Maintenance', 'Food', 'Other'].map(cat => (
                           <SelectItem key={cat} value={cat}>{cat}</SelectItem>
@@ -365,42 +378,52 @@ export default function Expenses() {
                   </FormItem>
                 )} />
               </div>
-              <FormField control={form.control} name="amount" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Amount (₹)</FormLabel>
-                  <FormControl><Input type="number" {...field} className="bg-surface2" /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="purpose" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Purpose / Description</FormLabel>
-                  <FormControl><Input {...field} className="bg-surface2" /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-               <FormField control={form.control} name="status" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Status</FormLabel>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="amount" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Amount (₹)</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="status" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger className="bg-surface2"><SelectValue /></SelectTrigger></FormControl>
+                      <FormControl>
+                        <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent className="bg-surface border-border">
                         {['Pending', 'Approved', 'Rejected'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </FormItem>
                 )} />
-              <div className="pt-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-text2 mb-2">Attach Receipt / Invoice</p>
+              </div>
+              <FormField control={form.control} name="purpose" render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Purpose / Description</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-text2 mb-1.5">Attach Receipt / Invoice</p>
                 
                 {/* Show existing attachments for edits */}
                 {editingRecord?.attachments?.length > 0 && !savedAttachment && (
-                  <div className="mb-2 flex flex-wrap gap-2">
+                  <div className="mb-2 flex flex-wrap gap-1.5">
                     {editingRecord.attachments.map((att, i) => (
                       <a key={i} href={att.url} target="_blank" rel="noreferrer"
-                        className="flex items-center gap-1.5 px-2 py-1 bg-accent/10 text-accent text-[11px] rounded-lg hover:bg-accent/20 transition-colors"
+                        className="flex items-center gap-1 px-2 py-1 bg-accent/10 text-accent text-[10px] rounded hover:bg-accent/20 transition-colors"
                       >
-                        <Paperclip size={11} /> {att.originalName}
+                        <Paperclip size={10} /> {att.originalName}
                       </a>
                     ))}
                   </div>
@@ -437,9 +460,9 @@ export default function Expenses() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-border rounded-xl text-text3 hover:border-accent hover:text-accent transition-colors text-[12px] font-medium"
+                    className="w-full flex items-center justify-center gap-2 p-2.5 border border-dashed border-border/80 rounded-xl text-text3 hover:border-accent hover:text-accent transition-colors text-[11px] font-medium bg-surface"
                   >
-                    <Paperclip size={15} /> Click to attach receipt or invoice
+                    <Paperclip size={14} /> Click to attach receipt or invoice
                   </button>
                 )}
                 <input
@@ -451,10 +474,12 @@ export default function Expenses() {
                 />
               </div>
 
-              <DialogFooter className="pt-4">
-                <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
-                <Button type="submit" disabled={isCreating || isUpdating || isUploading} className="bg-accent text-white">
-                  {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <DialogFooter className="pt-3 border-t border-border/60 gap-2 sm:gap-0">
+                <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isCreating || isUpdating || isUploading} className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs">
+                  {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                   {editingRecord ? 'Save Changes' : 'Submit Expense'}
                 </Button>
               </DialogFooter>

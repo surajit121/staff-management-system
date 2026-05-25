@@ -312,25 +312,33 @@ export default function MaterialUsage() {
       </div>
 
        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[480px] bg-surface text-text">
-          <DialogHeader>
-            <DialogTitle className="font-bold">{editingRecord ? 'Update Usage' : 'Log Daily Usage'}</DialogTitle>
-            <DialogDescription className="text-xs text-text2">
-              {editingRecord ? 'Modify the usage, wastage, and return quantities for this entry.' : 'Log the quantities of materials used, wasted, and returned at the site today.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+          <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
+            <DialogHeader className="space-y-0.5">
+              <DialogTitle className="text-lg font-bold tracking-tight text-text">
+                {editingRecord ? 'Update Usage Record' : 'Log Daily Material Usage'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-text2">
+                {editingRecord 
+                  ? 'Modify the material quantities and details for this entry.' 
+                  : 'Log the quantities of materials used, wasted, and returned at the site today.'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                 <FormField control={form.control} name="project" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Project Reference</FormLabel>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-5 space-y-4">
+              {/* Project Reference Selection */}
+              <div className="bg-surface2/10 p-3 border border-border/40 rounded-lg">
+                <FormField control={form.control} name="project" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-accent">Project Reference</FormLabel>
                     <FormControl>
                       <Input
                         list="mat-project-codes"
-                        placeholder="Select or type code..."
+                        placeholder="Type or select project code..."
                         {...field}
-                        className="bg-surface2"
+                        className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent transition-all duration-200"
                       />
                     </FormControl>
                     <datalist id="mat-project-codes">
@@ -343,133 +351,212 @@ export default function MaterialUsage() {
                 )} />
               </div>
 
-
-              <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+              {/* Items List Container */}
+              <div className="space-y-3 max-h-[30vh] overflow-y-auto pr-1.5 custom-scrollbar">
                 {fields.map((field, index) => {
                   const isCustomItem = form.watch(`items.${index}.isCustom`);
                   return (
-                    <div key={field.id} className="p-4 border border-border rounded-lg bg-surface2/30 space-y-4 relative">
-                      {fields.length > 1 && !editingRecord && (
-                        <button type="button" onClick={() => removeField(index)} className="absolute top-2 right-2 text-text2 hover:text-red">
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                      
-                      <FormField control={form.control} name={`items.${index}.item`} render={({ field: itemField }) => (
-                        <FormItem>
-                          <div className="flex justify-between items-center mb-1">
-                            <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Item Name</FormLabel>
-                            {isCustomItem && (
-                              <button 
-                                type="button" 
-                                onClick={() => { 
-                                  form.setValue(`items.${index}.isCustom`, false); 
-                                  itemField.onChange(''); 
-                                }}
-                                className="text-[10px] font-bold text-accent hover:underline flex items-center gap-1"
-                              >
-                                <Plus size={10} className="rotate-45" /> Back to Selection
-                              </button>
-                            )}
-                          </div>
-                          {isCustomItem ? (
-                            <FormControl>
-                              <Input placeholder="Enter custom item name" {...itemField} className="bg-surface2" autoFocus />
-                            </FormControl>
-                          ) : (
-                            <Select 
-                              onValueChange={(val) => {
-                                if (val === "___custom___") {
-                                  form.setValue(`items.${index}.isCustom`, true);
-                                  itemField.onChange("");
-                                } else {
-                                  itemField.onChange(val);
-                                }
-                              }} 
-                              value={itemField.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="bg-surface2">
-                                  <SelectValue placeholder="Select Item" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="bg-surface border-border max-h-[280px] w-[var(--radix-select-trigger-width)]">
-                                {ITEM_CATEGORIES.map((category, idx) => (
-                                  <SelectGroup key={category.label}>
-                                    {idx > 0 && <SelectSeparator />}
-                                    <SelectLabel className="text-accent text-[10px] uppercase tracking-widest">{category.label}</SelectLabel>
-                                    {category.items.map(item => (
-                                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                    <div 
+                      key={field.id} 
+                      className="p-3 border border-border/60 rounded-xl bg-surface2/10 transition-all duration-200 hover:border-accent/40"
+                    >
+                      <div className="grid grid-cols-12 gap-2.5 items-end">
+                        {/* Item Name (5 or 6 cols) */}
+                        <div className={cn("space-y-1.5", fields.length > 1 && !editingRecord ? "col-span-5" : "col-span-6")}>
+                          <FormField control={form.control} name={`items.${index}.item`} render={({ field: itemField }) => (
+                            <FormItem className="space-y-1">
+                              <div className="flex justify-between items-center">
+                                <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Item Name</FormLabel>
+                                {isCustomItem && (
+                                  <button 
+                                    type="button" 
+                                    onClick={() => { 
+                                      form.setValue(`items.${index}.isCustom`, false); 
+                                      form.setValue(`items.${index}.item`, ''); 
+                                    }}
+                                    className="text-[9px] font-bold text-accent hover:underline flex items-center gap-0.5"
+                                  >
+                                    <Plus size={8} className="rotate-45" /> Select List
+                                  </button>
+                                )}
+                              </div>
+                              {isCustomItem ? (
+                                <FormControl>
+                                  <Input 
+                                    placeholder="Custom item name..." 
+                                    {...itemField} 
+                                    className="bg-surface border-border/60 h-9 px-2.5 text-xs focus-visible:ring-accent" 
+                                    autoFocus 
+                                  />
+                                </FormControl>
+                              ) : (
+                                <Select 
+                                  onValueChange={(val) => {
+                                    if (val === "___custom___") {
+                                      form.setValue(`items.${index}.isCustom`, true);
+                                      itemField.onChange("");
+                                    } else {
+                                      itemField.onChange(val);
+                                    }
+                                  }} 
+                                  value={itemField.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                                      <SelectValue placeholder="Select Item" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent className="bg-surface border-border max-h-[200px] w-[var(--radix-select-trigger-width)]">
+                                    {ITEM_CATEGORIES.map((category, idx) => (
+                                      <SelectGroup key={category.label}>
+                                        {idx > 0 && <SelectSeparator />}
+                                        <SelectLabel className="text-accent text-[9px] uppercase tracking-widest px-2.5 py-1">{category.label}</SelectLabel>
+                                        {category.items.map(item => (
+                                          <SelectItem key={item} value={item} className="text-xs py-1 pl-6">{item}</SelectItem>
+                                        ))}
+                                      </SelectGroup>
                                     ))}
-                                  </SelectGroup>
-                                ))}
-                                <SelectSeparator />
-                                <SelectItem value="___custom___" className="font-bold text-accent focus:text-white">
-                                  + Others (Type Manually)
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+                                    <SelectSeparator />
+                                    <SelectItem value="___custom___" className="font-bold text-accent focus:text-white text-xs py-1 pl-6">
+                                      + Others (Type Manually)
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
+                              <FormMessage className="text-[10px] mt-0.5" />
+                            </FormItem>
+                          )} />
+                        </div>
 
-                      <div className="grid grid-cols-3 gap-2">
-                        <FormField control={form.control} name={`items.${index}.used`} render={({ field: usedField }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-tighter text-text2">Used</FormLabel>
-                            <FormControl><Input type="number" {...usedField} className="bg-surface2" /></FormControl>
-                          </FormItem>
-                        )} />
-                        <FormField control={form.control} name={`items.${index}.wasted`} render={({ field: wastedField }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-tighter text-text2">Wasted</FormLabel>
-                            <FormControl><Input type="number" {...wastedField} className="bg-surface2" /></FormControl>
-                          </FormItem>
-                        )} />
-                        <FormField control={form.control} name={`items.${index}.returned`} render={({ field: returnedField }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-tighter text-text2">Returned</FormLabel>
-                            <FormControl><Input type="number" {...returnedField} className="bg-surface2" /></FormControl>
-                          </FormItem>
-                        )} />
+                        {/* Quantities (Used, Wasted, Returned) */}
+                        <div className="col-span-2 space-y-1">
+                          <FormField control={form.control} name={`items.${index}.used`} render={({ field: usedField }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[9px] font-bold uppercase tracking-wider text-text2 flex items-center gap-1">
+                                <span className="w-1 h-1 rounded-full bg-blue" /> Used
+                              </FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  {...usedField} 
+                                  className="bg-surface border-border/60 h-9 px-2 text-xs focus-visible:ring-accent" 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )} />
+                        </div>
+
+                        <div className="col-span-2 space-y-1">
+                          <FormField control={form.control} name={`items.${index}.wasted`} render={({ field: wastedField }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[9px] font-bold uppercase tracking-wider text-text2 flex items-center gap-1">
+                                <span className="w-1 h-1 rounded-full bg-red" /> Wasted
+                              </FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  {...wastedField} 
+                                  className="bg-surface border-border/60 h-9 px-2 text-xs focus-visible:ring-accent" 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )} />
+                        </div>
+
+                        <div className="col-span-2 space-y-1">
+                          <FormField control={form.control} name={`items.${index}.returned`} render={({ field: returnedField }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[9px] font-bold uppercase tracking-wider text-text2 flex items-center gap-1">
+                                <span className="w-1 h-1 rounded-full bg-green" /> Returned
+                              </FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  {...returnedField} 
+                                  className="bg-surface border-border/60 h-9 px-2 text-xs focus-visible:ring-accent" 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )} />
+                        </div>
+
+                        {/* Delete Button */}
+                        {fields.length > 1 && !editingRecord && (
+                          <div className="col-span-1 flex justify-center pb-0.5">
+                            <button 
+                              type="button" 
+                              onClick={() => removeField(index)} 
+                              className="p-2 rounded-lg border border-border/60 hover:border-red/40 text-text2 hover:text-red hover:bg-red/10 transition-all duration-200"
+                              title="Delete Item"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
+              {/* Add Item Button */}
               {!editingRecord && (
                 <Button 
                   type="button" 
                   variant="outline" 
-                  className="w-full border-dashed border-border" 
+                  className="w-full border-dashed border-border/80 hover:border-accent hover:text-accent hover:bg-accent-light/10 h-9 transition-all duration-200 text-xs" 
                   onClick={() => append({ item: '', used: 0, wasted: 0, returned: 0, isCustom: false })}
                 >
-                  <Plus size={16} className="mr-2" /> Add Another Item
+                  <Plus size={14} className="mr-1.5" /> Add Another Item
                 </Button>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Date & Logged By details */}
+              <div className="grid grid-cols-2 gap-4 pt-1">
                 <FormField control={form.control} name="date" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Date</FormLabel>
-                    <FormControl><Input type="date" {...field} className="bg-surface2" /></FormControl>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Date</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" 
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="loggedBy" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Logged By</FormLabel>
-                    <FormControl><Input placeholder="Manager Name" {...field} className="bg-surface2" /></FormControl>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Logged By</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Manager Name" 
+                        {...field} 
+                        className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" 
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
               </div>
-              <DialogFooter className="pt-4">
-                <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
-                <Button type="submit" disabled={isCreating || isUpdating} className="bg-accent text-white">
-                  {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+
+              {/* Modal Footer Actions */}
+              <DialogFooter className="pt-3 border-t border-border/60 gap-2 sm:gap-0">
+                <Button 
+                  variant="outline" 
+                  type="button" 
+                  onClick={handleClose}
+                  className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isCreating || isUpdating} 
+                  className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs"
+                >
+                  {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                   {editingRecord ? 'Save Changes' : 'Confirm Usage'}
                 </Button>
               </DialogFooter>

@@ -295,21 +295,30 @@ export default function PendingBilling() {
       </div>
 
        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-surface text-text">
-          <DialogHeader>
-            <DialogTitle className="font-bold">{editingRecord ? 'Update Billing Log' : 'New Billing Entry'}</DialogTitle>
-            <DialogDescription className="text-xs text-text2">
-              {editingRecord ? 'Modify the billing record for the selected project and item.' : 'Record a new billing transaction with project, vendor, and amount details.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[550px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+          <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
+            <DialogHeader className="space-y-0.5">
+              <DialogTitle className="text-lg font-bold tracking-tight text-text">
+                {editingRecord ? 'Update Billing Log' : 'New Billing Entry'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-text2">
+                {editingRecord ? 'Modify the billing record for the selected project and item.' : 'Record a new billing transaction with project, vendor, and amount details.'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                 <FormField control={form.control} name="project" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Billing Project</FormLabel>
+                <FormField control={form.control} name="project" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Billing Project</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger className="bg-surface2"><SelectValue placeholder="Project Code" /></SelectTrigger></FormControl>
+                      <FormControl>
+                        <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                          <SelectValue placeholder="Project Code" />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent className="bg-surface border-border">
                         {projects.map(p => <SelectItem key={p._id} value={p.code}>{p.code} - {p.name}</SelectItem>)}
                       </SelectContent>
@@ -317,51 +326,67 @@ export default function PendingBilling() {
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="item" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Item Name</FormLabel>
-                    <FormControl><Input placeholder="Concrete / Steel" {...field} className="bg-surface2" /></FormControl>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Item Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Concrete / Steel" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
               </div>
               <FormField control={form.control} name="vendor" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Vendor / Supplier</FormLabel>
-                  <FormControl><Input placeholder="A1 Steel Co." {...field} className="bg-surface2" /></FormControl>
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Vendor / Supplier</FormLabel>
+                  <FormControl>
+                    <Input placeholder="A1 Steel Co." {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                  </FormControl>
                 </FormItem>
               )} />
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 <FormField control={form.control} name="qty" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-tighter text-text2">Qty</FormLabel>
-                    <FormControl><Input type="number" {...field} className="bg-surface2" /></FormControl>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Qty</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="rate" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-tighter text-text2">Rate</FormLabel>
-                    <FormControl><Input type="number" {...field} className="bg-surface2" /></FormControl>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Rate</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="amount" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-tighter text-text2">Total</FormLabel>
-                    <FormControl><Input type="number" disabled {...field} className="bg-surface2 cursor-not-allowed opacity-70" /></FormControl>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Total</FormLabel>
+                    <FormControl>
+                      <Input type="number" disabled {...field} className="bg-surface2 border-border/60 h-9 px-3 text-xs cursor-not-allowed opacity-70" />
+                    </FormControl>
                   </FormItem>
                 )} />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                 <FormField control={form.control} name="deliveredDate" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Delivery Date</FormLabel>
-                    <FormControl><Input type="date" {...field} className="bg-surface2" /></FormControl>
+                <FormField control={form.control} name="deliveredDate" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Delivery Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="status" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Log Status</FormLabel>
-                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger className="bg-surface2"><SelectValue /></SelectTrigger></FormControl>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Log Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent className="bg-surface border-border">
                         {['Pending', 'Billed', 'Cancelled'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                       </SelectContent>
@@ -371,17 +396,17 @@ export default function PendingBilling() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-text2 flex items-center justify-between">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 flex items-center justify-between">
                   Attachments
                   <Button 
                     type="button" 
                     variant="ghost" 
                     size="sm" 
-                    className="h-6 px-2 text-[10px] text-accent hover:bg-accent-light"
+                    className="h-6 px-2 text-[9px] text-accent hover:bg-accent-light/10"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
                   >
-                    {isUploading ? <Loader2 size={12} className="animate-spin mr-1" /> : <FilePlus size={12} className="mr-1" />}
+                    {isUploading ? <Loader2 size={10} className="animate-spin mr-1" /> : <FilePlus size={10} className="mr-1" />}
                     Add File
                   </Button>
                 </label>
@@ -393,7 +418,7 @@ export default function PendingBilling() {
                   accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
                 />
                 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
                   {(form.watch('attachments') || []).map((file) => (
                     <div key={file.filename} className="flex items-center justify-between p-2 rounded-lg bg-surface2 border border-border group">
                       <div className="flex items-center gap-2 overflow-hidden">
@@ -411,16 +436,19 @@ export default function PendingBilling() {
                     </div>
                   ))}
                   {(!form.watch('attachments') || form.watch('attachments').length === 0) && (
-                    <div className="text-center py-4 border-2 border-dashed border-border rounded-lg text-text3 text-[10px]">
+                    <div className="text-center py-3 border border-dashed border-border/80 rounded-lg text-text3 text-[10px]">
                       No documents attached
                     </div>
                   )}
                 </div>
               </div>
-              <DialogFooter className="pt-4">
-                <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
-                <Button type="submit" disabled={isCreating || isUpdating} className="bg-accent text-white">
-                  {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              
+              <DialogFooter className="pt-3 border-t border-border/60 gap-2 sm:gap-0">
+                <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isCreating || isUpdating} className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs">
+                  {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                   {editingRecord ? 'Save Changes' : 'Confirm Entry'}
                 </Button>
               </DialogFooter>

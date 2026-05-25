@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
-import react, { reactCompilerPreset } from '@vitejs/plugin-react'
-import babel from '@rolldown/plugin-babel'
+import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -12,10 +11,6 @@ const __dirname = path.dirname(__filename)
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    babel({
-      presets: [reactCompilerPreset({ compilationMode: 'annotation' })],
-      exclude: 'node_modules/**'
-    }),
     react(),
      tailwindcss(),
      viteCompression({

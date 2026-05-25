@@ -267,154 +267,183 @@ export default function StockTransfer() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px] bg-surface text-text">
-          <DialogHeader>
-            <DialogTitle className="font-bold">{editingRecord ? 'Update Transfer' : 'New Stock Transfer'}</DialogTitle>
-            <DialogDescription className="text-xs text-text2">
-              {editingRecord ? 'Modify the status or details of an existing stock movement.' : 'Initiate a new stock transfer from source to destination site.'}
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col max-h-[75vh] py-2">
-              <div className="flex-1 overflow-y-auto px-1 pr-3 space-y-4 custom-scrollbar">
+        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+          <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
+            <DialogHeader className="space-y-0.5">
+              <DialogTitle className="text-lg font-bold tracking-tight text-text">
+                {editingRecord ? 'Update Stock Transfer' : 'New Stock Transfer'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-text2">
+                {editingRecord ? 'Modify the status or details of an existing stock movement.' : 'Initiate a new stock transfer from source to destination site.'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-                <div className="space-y-3 bg-surface2/30 p-3 rounded-xl border border-border">
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="flex gap-3 items-start relative">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-5 space-y-4">
+              {/* Items List Container */}
+              <div className="space-y-3 max-h-[30vh] overflow-y-auto pr-1.5 custom-scrollbar">
+                {fields.map((field, index) => (
+                  <div 
+                    key={field.id} 
+                    className="p-3 border border-border/60 rounded-xl bg-surface2/10 transition-all duration-200 hover:border-accent/40"
+                  >
+                    <div className="grid grid-cols-12 gap-2.5 items-end">
                       <FormField control={form.control} name={`items.${index}.name`} render={({ field: inputField }) => (
-                        <FormItem className="flex-1">
+                        <FormItem className={cn("space-y-1", fields.length > 1 && !editingRecord ? "col-span-8" : "col-span-9")}>
                           <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Item Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Fire Extinguisher, Dome Camera..." list="item-suggestions" {...inputField} className="bg-surface2 h-9" />
+                            <Input placeholder="Fire Extinguisher, Dome Camera..." list="item-suggestions" {...inputField} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
                           </FormControl>
-                          <FormMessage className="text-[10px]" />
+                          <FormMessage className="text-[10px] mt-0.5" />
                         </FormItem>
                       )} />
+                      
                       <FormField control={form.control} name={`items.${index}.qty`} render={({ field: inputField }) => (
-                        <FormItem className="w-[80px]">
+                        <FormItem className="col-span-3 space-y-1">
                           <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Qty</FormLabel>
-                          <FormControl><Input type="number" {...inputField} className="bg-surface2 h-9 text-center" /></FormControl>
-                          <FormMessage className="text-[10px]" />
+                          <FormControl>
+                            <Input type="number" {...inputField} className="bg-surface border-border/60 h-9 px-2 text-center text-xs focus-visible:ring-accent" />
+                          </FormControl>
+                          <FormMessage className="text-[10px] mt-0.5" />
                         </FormItem>
                       )} />
-                      {index > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => removeField(index)}
-                          className="mt-6 p-1.5 rounded-md text-red hover:bg-red-light transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+
+                      {index > 0 && !editingRecord && (
+                        <div className="col-span-1 flex justify-center pb-0.5">
+                          <button
+                            type="button"
+                            onClick={() => removeField(index)}
+                            className="p-2 rounded-lg border border-border/60 hover:border-red/40 text-text2 hover:text-red hover:bg-red/10 transition-all duration-200"
+                            title="Delete Item"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       )}
                     </div>
-                  ))}
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full h-9 border-2 border-dashed border-accent/20 text-accent hover:bg-accent/5 text-xs font-bold mt-2 rounded-xl transition-all"
-                    onClick={() => append({ name: '', qty: 0 })}
-                  >
-                    <Plus size={14} className="mr-2" /> Add More Items
-                  </Button>
-
-                  <datalist id="item-suggestions">
-                    {/* Cameras */}
-                    <option value="Dome Camera" />
-                    <option value="Bullet Camera" />
-                    <option value="PTZ Camera" />
-                    <option value="IP Camera" />
-                    <option value="Thermal Camera" />
-                    <option value="C-Mount Camera" />
-                    <option value="Wireless CCTV Camera" />
-                    <option value="HD CCTV Camera" />
-
-                    {/* Fire Extinguishers & Safety */}
-                    <option value="Water Fire Extinguisher" />
-                    <option value="Foam Fire Extinguisher" />
-                    <option value="Dry Powder Fire Extinguisher" />
-                    <option value="CO2 Fire Extinguisher" />
-                    <option value="Wet Chemical Fire Extinguisher" />
-                    <option value="Smoke Detector" />
-                    <option value="Heat Detector" />
-
-                    {/* Cables & Wires */}
-                    <option value="Coaxial Cable RG59" />
-                    <option value="Siamese CCTV Cable" />
-                    <option value="Cat5e Ethernet Cable" />
-                    <option value="Cat6 Ethernet Cable" />
-                    <option value="Cat7 Ethernet Cable" />
-                    <option value="Fiber Optic Cable" />
-                    <option value="Electrical Wire (1.5mm)" />
-                    <option value="Electrical Wire (2.5mm)" />
-
-                    {/* Standard Construction/Other */}
-                    <option value="Cement Bags" />
-                    <option value="Steel Rods (TMT)" />
-                    <option value="Safety Helmet (Hard Hat)" />
-                  </datalist>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="from" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Source</FormLabel>
-                      <FormControl><Input placeholder="Warehouse A" {...field} className="bg-surface2" /></FormControl>
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="to" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Destination Site</FormLabel>
-                      <FormControl><Input placeholder="Project X Site" {...field} className="bg-surface2" /></FormControl>
-                    </FormItem>
-                  )} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="project" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Project Ref</FormLabel>
-                      <FormControl>
-                        <Input
-                          list="project-codes"
-                          placeholder="Select or type code..."
-                          {...field}
-                          className="bg-surface2"
-                        />
-                      </FormControl>
-                      <datalist id="project-codes">
-                        {projects.map(p => (
-                          <option key={p._id} value={p.code}>{p.code} – {p.name}</option>
-                        ))}
-                      </datalist>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="date" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Date</FormLabel>
-                      <FormControl><Input type="date" {...field} className="bg-surface2" /></FormControl>
-                    </FormItem>
-                  )} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="status" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger className="bg-surface2"><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent className="bg-surface border-border">
-                          {['In Transit', 'Delivered', 'Reserved', 'Cancelled'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )} />
-                </div>
+                  </div>
+                ))}
               </div>
 
-              <DialogFooter className="pt-5 mt-2 border-t border-border shrink-0">
-                <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
-                <Button type="submit" disabled={isCreating || isUpdating} className="bg-accent text-white">
-                  {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {!editingRecord && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-dashed border-border/80 hover:border-accent hover:text-accent hover:bg-accent-light/10 h-9 transition-all duration-200 text-xs"
+                  onClick={() => append({ name: '', qty: 0 })}
+                >
+                  <Plus size={14} className="mr-1.5" /> Add More Items
+                </Button>
+              )}
+
+              <datalist id="item-suggestions">
+                {/* Cameras */}
+                <option value="Dome Camera" />
+                <option value="Bullet Camera" />
+                <option value="PTZ Camera" />
+                <option value="IP Camera" />
+                <option value="Thermal Camera" />
+                <option value="C-Mount Camera" />
+                <option value="Wireless CCTV Camera" />
+                <option value="HD CCTV Camera" />
+
+                {/* Fire Extinguishers & Safety */}
+                <option value="Water Fire Extinguisher" />
+                <option value="Foam Fire Extinguisher" />
+                <option value="Dry Powder Fire Extinguisher" />
+                <option value="CO2 Fire Extinguisher" />
+                <option value="Wet Chemical Fire Extinguisher" />
+                <option value="Smoke Detector" />
+                <option value="Heat Detector" />
+
+                {/* Cables & Wires */}
+                <option value="Coaxial Cable RG59" />
+                <option value="Siamese CCTV Cable" />
+                <option value="Cat5e Ethernet Cable" />
+                <option value="Cat6 Ethernet Cable" />
+                <option value="Cat7 Ethernet Cable" />
+                <option value="Fiber Optic Cable" />
+                <option value="Electrical Wire (1.5mm)" />
+                <option value="Electrical Wire (2.5mm)" />
+
+                {/* Standard Construction/Other */}
+                <option value="Cement Bags" />
+                <option value="Steel Rods (TMT)" />
+                <option value="Safety Helmet (Hard Hat)" />
+              </datalist>
+
+              <div className="grid grid-cols-2 gap-4 pt-1">
+                <FormField control={form.control} name="from" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Source</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Warehouse A" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="to" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Destination Site</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Project X Site" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
+                  </FormItem>
+                )} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="project" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Project Ref</FormLabel>
+                    <FormControl>
+                      <Input
+                        list="project-codes"
+                        placeholder="Select or type code..."
+                        {...field}
+                        className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent"
+                      />
+                    </FormControl>
+                    <datalist id="project-codes">
+                      {projects.map(p => (
+                        <option key={p._id} value={p.code}>{p.code} – {p.name}</option>
+                      ))}
+                    </datalist>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="date" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
+                  </FormItem>
+                )} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="status" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-surface border-border">
+                        {['In Transit', 'Delivered', 'Reserved', 'Cancelled'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )} />
+              </div>
+
+              <DialogFooter className="pt-3 border-t border-border/60 gap-2 sm:gap-0">
+                <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isCreating || isUpdating} className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs">
+                  {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                   {editingRecord ? 'Save Changes' : 'Confirm Transfer(s)'}
                 </Button>
               </DialogFooter>
