@@ -319,66 +319,86 @@ export default function SalaryPayment() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-surface text-text">
-          <DialogHeader>
-            <DialogTitle className="font-bold">{editingRecord ? 'Edit Salary' : 'Log Salary'}</DialogTitle>
-            <DialogDescription className="text-xs text-text3">
-              {editingRecord ? 'Update the details of this salary record.' : 'Enter the details for a new salary payment.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+          <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
+            <DialogHeader className="space-y-0.5">
+              <DialogTitle className="text-lg font-bold tracking-tight text-text">
+                {editingRecord ? 'Edit Salary' : 'Log Salary'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-text2">
+                {editingRecord ? 'Update the details of this salary record.' : 'Enter the details for a new salary payment.'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-5 space-y-4">
               <FormField control={form.control} name="staffId" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Staff member</FormLabel>
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Staff member</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl><SelectTrigger className="bg-surface2"><SelectValue placeholder="Choose a member" /></SelectTrigger></FormControl>
+                    <FormControl>
+                      <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                        <SelectValue placeholder="Choose a member" />
+                      </SelectTrigger>
+                    </FormControl>
                     <SelectContent className="bg-surface border-border">
                       {staffList.map(s => <SelectItem key={s._id} value={s._id}>{s.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage className="text-[10px] mt-0.5" />
                 </FormItem>
               )} />
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="month" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Month</FormLabel>
-                    <FormControl><Input placeholder="e.g. April 2026" {...field} className="bg-surface2" /></FormControl>
-                    <FormMessage />
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Month</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. April 2026" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
+                    <FormMessage className="text-[10px] mt-0.5" />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="paymentDate" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Payment Date</FormLabel>
-                    <FormControl><Input type="date" {...field} className="bg-surface2" /></FormControl>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Payment Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
                   </FormItem>
                 )} />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="amount" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Base Amount (₹)</FormLabel>
-                    <FormControl><Input type="number" {...field} className="bg-surface2" /></FormControl>
-                    <FormMessage />
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Base Amount (₹)</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
+                    <FormMessage className="text-[10px] mt-0.5" />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="deductions" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Deductions (₹)</FormLabel>
-                    <FormControl><Input type="number" {...field} className="bg-surface2" /></FormControl>
-                    <FormMessage />
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Deductions (₹)</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
+                    <FormMessage className="text-[10px] mt-0.5" />
                   </FormItem>
                 )} />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="paymentMethod" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Method</FormLabel>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Method</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger className="bg-surface2"><SelectValue /></SelectTrigger></FormControl>
+                      <FormControl>
+                        <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent className="bg-surface border-border">
                         {['Bank Transfer', 'Cash', 'Cheque', 'UPI'].map(cat => (
                           <SelectItem key={cat} value={cat}>{cat}</SelectItem>
@@ -388,10 +408,14 @@ export default function SalaryPayment() {
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="status" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Status</FormLabel>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger className="bg-surface2"><SelectValue /></SelectTrigger></FormControl>
+                      <FormControl>
+                        <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent className="bg-surface border-border">
                         {['Pending', 'Paid'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                       </SelectContent>
@@ -399,10 +423,12 @@ export default function SalaryPayment() {
                   </FormItem>
                 )} />
               </div>
-              <DialogFooter className="pt-4">
-                <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
-                <Button type="submit" disabled={isCreating || isUpdating} className="bg-accent text-white">
-                  {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <DialogFooter className="pt-3 border-t border-border/60 gap-2 sm:gap-0">
+                <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isCreating || isUpdating} className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs">
+                  {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                   {editingRecord ? 'Save Changes' : 'Submit Salary'}
                 </Button>
               </DialogFooter>

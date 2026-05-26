@@ -295,59 +295,66 @@ export default function TravelHistory() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[550px] bg-surface text-text overflow-hidden flex flex-col max-h-[95vh]">
-          <DialogHeader>
-            <DialogTitle className="font-bold">{editingRecord ? 'Edit Travel Log' : 'New Travel Request'}</DialogTitle>
-            <DialogDescription className="text-xs text-text2">
-              {editingRecord ? 'Update the route, cost, or purpose of this travel record.' : 'Submit a new travel request including origin, destination, and modes of transport.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+          <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
+            <DialogHeader className="space-y-0.5">
+              <DialogTitle className="text-lg font-bold tracking-tight text-text">
+                {editingRecord ? 'Edit Travel Log' : 'New Travel Request'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-text2">
+                {editingRecord ? 'Update the route, cost, or purpose of this travel record.' : 'Submit a new travel request including origin, destination, and modes of transport.'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full overflow-hidden">
-              <div className="flex-1 overflow-y-auto py-4 px-1 space-y-4 pr-3 custom-scrollbar">
-               <FormField control={form.control} name="staffId" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Traveller</FormLabel>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-5 space-y-4">
+              <FormField control={form.control} name="staffId" render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Traveller</FormLabel>
                    <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl><SelectTrigger className="bg-surface2"><SelectValue placeholder="Select Traveler" /></SelectTrigger></FormControl>
+                    <FormControl>
+                      <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
+                        <SelectValue placeholder="Select Traveler" />
+                      </SelectTrigger>
+                    </FormControl>
                     <SelectContent className="bg-surface border-border">
                       {staffList.map(s => <SelectItem key={s._id} value={s._id}>{s.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage className="text-[10px] mt-0.5" />
                 </FormItem>
               )} />
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="from" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">From</FormLabel>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">From</FormLabel>
                     <FormControl>
-                      <Input list="from-locations" placeholder="Select or type..." {...field} className="bg-surface2" />
+                      <Input list="from-locations" placeholder="Select or type..." {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
                     </FormControl>
                     <datalist id="from-locations">
                       {['Office', 'Site A', 'Site B', 'Site C', 'Warehouse', 'Client Office'].map(loc => (
                         <option key={loc} value={loc} />
                       ))}
                     </datalist>
-                    <FormMessage />
+                    <FormMessage className="text-[10px] mt-0.5" />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="to" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">To</FormLabel>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">To</FormLabel>
                     <FormControl>
-                      <Input list="to-locations" placeholder="Select or type..." {...field} className="bg-surface2" />
+                      <Input list="to-locations" placeholder="Select or type..." {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
                     </FormControl>
                     <datalist id="to-locations">
                       {['Office', 'Site A', 'Site B', 'Site C', 'Warehouse', 'Client Office'].map(loc => (
                         <option key={loc} value={loc} />
                       ))}
                     </datalist>
-                    <FormMessage />
+                    <FormMessage className="text-[10px] mt-0.5" />
                   </FormItem>
                 )} />
               </div>
-              <div className="space-y-3 border border-border rounded-lg p-3 bg-surface2/30">
+              <div className="space-y-3 border border-border rounded-xl p-3 bg-surface2/10">
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="text-[11px] font-bold uppercase tracking-wider text-accent flex items-center gap-2">
                     <Plus size={14} className="text-accent" /> Travel Legs
@@ -357,86 +364,101 @@ export default function TravelHistory() {
                   </Button>
                 </div>
                 
-                {fields.map((field, index) => (
-                  <div key={field.id} className="grid grid-cols-12 gap-2 items-end group relative border-b border-border/50 pb-3 last:border-0 last:pb-0">
-                    <div className="col-span-12 md:col-span-4">
-                      <FormField control={form.control} name={`travelDetails.${index}.mode`} render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Transport Mode</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl><SelectTrigger className="bg-surface h-10 text-[11px]"><SelectValue /></SelectTrigger></FormControl>
-                            <SelectContent className="bg-surface border-border">
-                              {['Car', 'Bike', 'Train', 'Bus', 'Auto', 'Flight', 'Walk'].map(m => (
-                                <SelectItem key={m} value={m}>{m}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )} />
+                <div className="space-y-3 max-h-[25vh] overflow-y-auto pr-1.5 custom-scrollbar">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="grid grid-cols-12 gap-2 items-end group relative border-b border-border/50 pb-3 last:border-0 last:pb-0">
+                      <div className="col-span-12 md:col-span-4">
+                        <FormField control={form.control} name={`travelDetails.${index}.mode`} render={({ field }) => (
+                          <FormItem className="space-y-1">
+                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Transport Mode</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="bg-surface h-9 text-[11px] border-border/60">
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-surface border-border">
+                                {['Car', 'Bike', 'Train', 'Bus', 'Auto', 'Flight', 'Walk'].map(m => (
+                                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )} />
+                      </div>
+                      <div className="col-span-3 md:col-span-2">
+                         <FormField control={form.control} name={`travelDetails.${index}.distance`} render={({ field }) => (
+                          <FormItem className="space-y-1">
+                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Dist (km)</FormLabel>
+                            <FormControl>
+                              <Input type="number" step="0.1" {...field} className="bg-surface h-9 text-[11px] border-border/60 text-center" />
+                            </FormControl>
+                            <FormMessage className="text-[9px]" />
+                          </FormItem>
+                        )} />
+                      </div>
+                      <div className="col-span-3 md:col-span-2">
+                         <FormField control={form.control} name={`travelDetails.${index}.duration`} render={({ field }) => (
+                          <FormItem className="space-y-1">
+                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Dur (min)</FormLabel>
+                            <FormControl>
+                              <Input type="number" {...field} className="bg-surface h-9 text-[11px] border-border/60 text-center" />
+                            </FormControl>
+                            <FormMessage className="text-[9px]" />
+                          </FormItem>
+                        )} />
+                      </div>
+                      <div className="col-span-3 md:col-span-3">
+                         <FormField control={form.control} name={`travelDetails.${index}.cost`} render={({ field }) => (
+                          <FormItem className="space-y-1">
+                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Cost (₹)</FormLabel>
+                            <FormControl>
+                              <Input type="number" {...field} className="bg-surface h-9 text-[11px] border-border/60 text-center" />
+                            </FormControl>
+                            <FormMessage className="text-[9px]" />
+                          </FormItem>
+                        )} />
+                      </div>
+                      <div className="col-span-3 md:col-span-1 pb-0.5">
+                        {fields.length > 1 && (
+                          <Button type="button" variant="ghost" size="icon" onClick={() => removeField(index)} className="h-8 w-8 text-red hover:bg-red-light rounded-md">
+                            <Trash2 size={14} />
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <div className="col-span-3 md:col-span-2">
-                       <FormField control={form.control} name={`travelDetails.${index}.distance`} render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Dist (km)</FormLabel>
-                          <FormControl><Input type="number" step="0.1" {...field} className="bg-surface h-10 text-[11px]" /></FormControl>
-                          <FormMessage className="text-[9px]" />
-                        </FormItem>
-                      )} />
-                    </div>
-                    <div className="col-span-3 md:col-span-2">
-                       <FormField control={form.control} name={`travelDetails.${index}.duration`} render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Dur (min)</FormLabel>
-                          <FormControl><Input type="number" {...field} className="bg-surface h-10 text-[11px]" /></FormControl>
-                          <FormMessage className="text-[9px]" />
-                        </FormItem>
-                      )} />
-                    </div>
-                    <div className="col-span-3 md:col-span-3">
-                       <FormField control={form.control} name={`travelDetails.${index}.cost`} render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Cost (₹)</FormLabel>
-                          <FormControl><Input type="number" {...field} className="bg-surface h-10 text-[11px]" /></FormControl>
-                          <FormMessage className="text-[9px]" />
-                        </FormItem>
-                      )} />
-                    </div>
-                    <div className="col-span-3 md:col-span-1 pb-0.5">
-                      {fields.length > 1 && (
-                        <Button type="button" variant="ghost" size="icon" onClick={() => removeField(index)} className="h-8 w-8 text-red hover:bg-red-light rounded-md">
-                          <Trash2 size={14} />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
                <FormField control={form.control} name="purpose" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Purpose</FormLabel>
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Purpose</FormLabel>
                   <FormControl>
-                    <Input list="purpose-options" placeholder="Select or type..." {...field} className="bg-surface2" />
+                    <Input list="purpose-options" placeholder="Select or type..." {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
                   </FormControl>
                   <datalist id="purpose-options">
                     {['Client Meeting', 'Site Inspection', 'Material Pickup', 'Maintenance', 'Training', 'Other'].map(p => (
                       <option key={p} value={p} />
                     ))}
                   </datalist>
-                  <FormMessage />
+                  <FormMessage className="text-[10px] mt-0.5" />
                 </FormItem>
               )} />
               <FormField control={form.control} name="date" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Trip Date</FormLabel>
-                  <FormControl><Input type="date" {...field} className="bg-surface2 h-10" /></FormControl>
-                  <FormMessage />
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Trip Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                  </FormControl>
+                  <FormMessage className="text-[10px] mt-0.5" />
                 </FormItem>
               )} />
-              </div>
-              <DialogFooter className="pt-4 border-t border-border mt-2">
-                <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
-                <Button type="submit" disabled={isCreating || isUpdating} className="bg-accent text-white h-10 px-6">
-                  {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <DialogFooter className="pt-3 border-t border-border/60 gap-2 sm:gap-0">
+                <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isCreating || isUpdating} className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs">
+                  {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                   {editingRecord ? 'Save Changes' : 'Log Trip'}
                 </Button>
               </DialogFooter>

@@ -305,24 +305,30 @@ export default function StaffManagement() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-surface text-text">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">{editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}</DialogTitle>
-            <DialogDescription className="text-sm text-text2">
-              {editingStaff ? 'Modify the details of an existing staff member.' : 'Enter the professional details for the new team member.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+          <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
+            <DialogHeader className="space-y-0.5">
+              <DialogTitle className="text-lg font-bold tracking-tight text-text">
+                {editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-text2">
+                {editingStaff ? 'Modify the details of an existing staff member.' : 'Enter the professional details for the new team member.'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Full Name</FormLabel>
-                      <FormControl><Input placeholder="John Doe" {...field} className="bg-surface2" /></FormControl>
-                      <FormMessage className="text-xs" />
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John Doe" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                      </FormControl>
+                      <FormMessage className="text-[10px] mt-0.5" />
                     </FormItem>
                   )}
                 />
@@ -330,10 +336,12 @@ export default function StaffManagement() {
                   control={form.control}
                   name="initials"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Initials</FormLabel>
-                      <FormControl><Input placeholder="JD" {...field} className="bg-surface2" /></FormControl>
-                      <FormMessage className="text-xs" />
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Initials</FormLabel>
+                      <FormControl>
+                        <Input placeholder="JD" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                      </FormControl>
+                      <FormMessage className="text-[10px] mt-0.5" />
                     </FormItem>
                   )}
                 />
@@ -343,11 +351,11 @@ export default function StaffManagement() {
                   control={form.control}
                   name="role"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Role</FormLabel>
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Role</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="bg-surface2">
+                          <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
                             <SelectValue placeholder="Select Role" />
                           </SelectTrigger>
                         </FormControl>
@@ -357,7 +365,7 @@ export default function StaffManagement() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage className="text-xs" />
+                      <FormMessage className="text-[10px] mt-0.5" />
                     </FormItem>
                   )}
                 />
@@ -365,11 +373,11 @@ export default function StaffManagement() {
                   control={form.control}
                   name="dept"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Department</FormLabel>
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Department</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="bg-surface2">
+                          <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
                             <SelectValue placeholder="Select Dept" />
                           </SelectTrigger>
                         </FormControl>
@@ -379,7 +387,7 @@ export default function StaffManagement() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage className="text-xs" />
+                      <FormMessage className="text-[10px] mt-0.5" />
                     </FormItem>
                   )}
                 />
@@ -388,10 +396,12 @@ export default function StaffManagement() {
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Email Address</FormLabel>
-                    <FormControl><Input placeholder="john@example.com" {...field} className="bg-surface2" /></FormControl>
-                    <FormMessage className="text-xs" />
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Email Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="john@example.com" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
+                    <FormMessage className="text-[10px] mt-0.5" />
                   </FormItem>
                 )}
               />
@@ -399,17 +409,21 @@ export default function StaffManagement() {
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-text2">Phone Number</FormLabel>
-                    <FormControl><Input placeholder="9876543210" {...field} className="bg-surface2" /></FormControl>
-                    <FormMessage className="text-xs" />
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="9876543210" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                    </FormControl>
+                    <FormMessage className="text-[10px] mt-0.5" />
                   </FormItem>
                 )}
               />
-              <DialogFooter className="pt-4">
-                <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
-                <Button type="submit" disabled={isCreating || isUpdating} className="bg-accent text-white">
-                  {(isCreating || isUpdating) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              <DialogFooter className="pt-3 border-t border-border/60 gap-2 sm:gap-0">
+                <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isCreating || isUpdating} className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs">
+                  {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                   {editingStaff ? 'Save Changes' : 'Add Staff'}
                 </Button>
               </DialogFooter>
