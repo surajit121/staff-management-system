@@ -142,32 +142,75 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/20 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple/20 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="min-h-screen flex items-center justify-center bg-bg relative overflow-hidden px-4">
+      {/* Dynamic backdrop ambient glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{
+            x: [0, 80, -40, 0],
+            y: [0, -60, 40, 0],
+            scale: [1, 1.15, 0.9, 1],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-[5%] left-[5%] w-[350px] h-[350px] bg-accent/20 rounded-full blur-[100px]"
+        />
+        <motion.div
+          animate={{
+            x: [0, -100, 60, 0],
+            y: [0, 80, -60, 0],
+            scale: [1, 0.9, 1.1, 1],
+          }}
+          transition={{
+            duration: 22,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute bottom-[5%] right-[5%] w-[400px] h-[400px] bg-purple/20 rounded-full blur-[120px]"
+        />
+        <motion.div
+          animate={{
+            x: [0, 50, -50, 0],
+            y: [0, 100, -80, 0],
+            scale: [1, 1.2, 0.85, 1],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-[35%] left-[35%] w-[280px] h-[280px] bg-teal/15 rounded-full blur-[90px]"
+        />
+      </div>
+
+      {/* Modern dotted/grid pattern overlay for high-tech depth */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.08),rgba(255,255,255,0))] dark:bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.18),rgba(2,6,23,0))] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
 
       <motion.div
         layout
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="w-full max-w-md p-8 bg-surface border border-border rounded-2xl shadow-card relative z-10 mx-4 overflow-hidden"
+        className="w-full max-w-md p-8 md:p-10 backdrop-blur-xl bg-surface/35 dark:bg-surface/20 border border-border/40 dark:border-white/5 rounded-3xl shadow-[0_0_50px_0_rgba(0,0,0,0.12)] dark:shadow-[0_0_60px_0_rgba(0,0,0,0.45)] relative z-10 mx-4 overflow-hidden transition-all duration-300 hover:border-accent/25"
       >
         <div className="flex flex-col items-center mb-8 relative">
           {viewMode !== 'login' && (
             <button
               onClick={() => switchMode('login')}
-              className="absolute left-0 top-2 p-2 text-text3 hover:text-text hover:bg-surface2 rounded-lg transition-all"
+              className="absolute left-0 top-1 p-2 text-text3 hover:text-text hover:bg-surface2/50 dark:hover:bg-white/5 rounded-xl transition-all"
             >
               <ArrowLeft size={18} />
             </button>
           )}
-          <div className="w-16 h-16 rounded-2xl bg-accent text-white flex items-center justify-center shadow-glow mb-4">
-            <LayoutPanelLeft size={32} strokeWidth={2.5} />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-accent via-indigo-500 to-purple text-white flex items-center justify-center shadow-glow shadow-accent/20 mb-4 hover:scale-105 transition-transform duration-300">
+            <LayoutPanelLeft size={30} strokeWidth={2.5} />
           </div>
-          <h1 className="text-2xl font-bold text-text m-0 tracking-tight">StaffSync Pro</h1>
-          <p className="text-text2 text-sm mt-1 text-center px-4">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-accent via-indigo-400 to-purple">StaffSync Pro</h1>
+          <p className="text-text2 text-[13px] mt-2 text-center px-4 font-medium">
             {viewMode === 'login' ? 'Sign in to your account' :
               viewMode === 'register' ? 'Create a new admin account' :
                 viewMode === 'forgot_request' ? 'Enter your email to recover your password' :
@@ -188,53 +231,55 @@ export default function Login() {
               className="space-y-5"
             >
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-text2 ml-1">Username</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 ml-1">Username</label>
                 <div className="relative group">
-                  <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
+                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Enter admin username"
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface2 border border-border rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface2/30 dark:bg-surface2/15 border border-border/40 dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent/80 focus:ring-4 focus:ring-accent/10 transition-all peer text-xs"
                   />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-accent to-purple transition-all duration-300 peer-focus:w-full rounded-full" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center ml-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-text2">Password</label>
-                  <button type="button" onClick={() => switchMode('forgot_request')} className="text-xs text-accent hover:text-accent-hover font-medium transition-colors">Forgot password?</button>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-text2">Password</label>
+                  <button type="button" onClick={() => switchMode('forgot_request')} className="text-[11px] text-accent hover:underline font-bold transition-colors">Forgot password?</button>
                 </div>
                 <div className="relative group">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-12 py-2.5 bg-surface2 border border-border rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring transition-all"
+                    className="w-full pl-10 pr-12 py-2.5 bg-surface2/30 dark:bg-surface2/15 border border-border/40 dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent/80 focus:ring-4 focus:ring-accent/10 transition-all peer text-xs"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text3 hover:text-text transition-colors"
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-accent to-purple transition-all duration-300 peer-focus:w-full rounded-full" />
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 rounded-xl transition-all shadow-main hover:shadow-glow flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                className="w-full bg-gradient-to-r from-accent via-indigo-600 to-purple hover:opacity-95 text-white font-semibold py-3 rounded-xl transition-all active:scale-[0.98] duration-150 shadow-glow hover:shadow-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2 text-xs"
               >
-                {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Sign In'}
+                {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Sign In'}
               </button>
 
-              <div className="text-center text-[13px] text-text2 mt-4 pt-4 border-t border-border">
-                Don't have an account? <button type="button" onClick={() => switchMode('register')} className="text-accent hover:text-accent-hover font-bold transition-colors ml-1">Sign up</button>
+              <div className="text-center text-[12px] text-text2 mt-4 pt-4 border-t border-border/40 dark:border-white/5">
+                Don't have an account? <button type="button" onClick={() => switchMode('register')} className="text-accent hover:underline font-bold transition-colors ml-1">Sign up</button>
               </div>
             </motion.form>
           )}
@@ -250,81 +295,85 @@ export default function Login() {
               className="space-y-4"
             >
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-text2 ml-1">Username</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 ml-1">Username</label>
                 <div className="relative group">
-                  <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
+                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Choose a username"
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface2 border border-border rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface2/30 dark:bg-surface2/15 border border-border/40 dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent/80 focus:ring-4 focus:ring-accent/10 transition-all peer text-xs"
                   />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-accent to-purple transition-all duration-300 peer-focus:w-full rounded-full" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-text2 ml-1">Email</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 ml-1">Email</label>
                 <div className="relative group">
-                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
+                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@company.com"
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface2 border border-border rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface2/30 dark:bg-surface2/15 border border-border/40 dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent/80 focus:ring-4 focus:ring-accent/10 transition-all peer text-xs"
                   />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-accent to-purple transition-all duration-300 peer-focus:w-full rounded-full" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-text2 ml-1">Password</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 ml-1">Password</label>
                 <div className="relative group">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a password"
-                    className="w-full pl-10 pr-12 py-2.5 bg-surface2 border border-border rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring transition-all"
+                    className="w-full pl-10 pr-12 py-2.5 bg-surface2/30 dark:bg-surface2/15 border border-border/40 dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent/80 focus:ring-4 focus:ring-accent/10 transition-all peer text-xs"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text3 hover:text-text transition-colors"
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-accent to-purple transition-all duration-300 peer-focus:w-full rounded-full" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-text2 ml-1">Confirm Password</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 ml-1">Confirm Password</label>
                 <div className="relative group">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm your password"
-                    className="w-full pl-10 pr-12 py-2.5 bg-surface2 border border-border rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring transition-all"
+                    className="w-full pl-10 pr-12 py-2.5 bg-surface2/30 dark:bg-surface2/15 border border-border/40 dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent/80 focus:ring-4 focus:ring-accent/10 transition-all peer text-xs"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text3 hover:text-text transition-colors"
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-accent to-purple transition-all duration-300 peer-focus:w-full rounded-full" />
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 rounded-xl transition-all shadow-main hover:shadow-glow flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                className="w-full bg-gradient-to-r from-accent via-indigo-600 to-purple hover:opacity-95 text-white font-semibold py-3 rounded-xl transition-all active:scale-[0.98] duration-150 shadow-glow hover:shadow-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2 text-xs"
               >
-                {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Create Account'}
+                {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Create Account'}
               </button>
             </motion.form>
           )}
@@ -340,25 +389,26 @@ export default function Login() {
               className="space-y-5"
             >
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-text2 ml-1">Email Address</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 ml-1">Email Address</label>
                 <div className="relative group">
-                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
+                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your registered email"
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface2 border border-border rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface2/30 dark:bg-surface2/15 border border-border/40 dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent/80 focus:ring-4 focus:ring-accent/10 transition-all peer text-xs"
                   />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-accent to-purple transition-all duration-300 peer-focus:w-full rounded-full" />
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 rounded-xl transition-all shadow-main hover:shadow-glow flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                className="w-full bg-gradient-to-r from-accent via-indigo-600 to-purple hover:opacity-95 text-white font-semibold py-3 rounded-xl transition-all active:scale-[0.98] duration-150 shadow-glow hover:shadow-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2 text-xs"
               >
-                {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Send Reset Code'}
+                {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Send Reset Code'}
               </button>
             </motion.form>
           )}
@@ -374,26 +424,27 @@ export default function Login() {
               className="space-y-5"
             >
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-text2 ml-1">6-Digit Code</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 ml-1">6-Digit Code</label>
                 <div className="relative group">
-                  <KeyRound size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
+                  <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
                   <input
                     type="text"
                     maxLength={6}
                     value={resetCode}
                     onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ''))}
                     placeholder="000000"
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface2 border border-border rounded-xl text-text text-center tracking-[0.5em] font-mono text-lg placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface2/30 dark:bg-surface2/15 border border-border/40 dark:border-white/5 rounded-xl text-text text-center tracking-[0.5em] font-mono text-lg placeholder:text-text3 focus:outline-none focus:border-accent/80 focus:ring-4 focus:ring-accent/10 transition-all peer text-xs"
                   />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-accent to-purple transition-all duration-300 peer-focus:w-full rounded-full" />
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 rounded-xl transition-all shadow-main hover:shadow-glow flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                className="w-full bg-gradient-to-r from-accent via-indigo-600 to-purple hover:opacity-95 text-white font-semibold py-3 rounded-xl transition-all active:scale-[0.98] duration-150 shadow-glow hover:shadow-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2 text-xs"
               >
-                {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Verify Code'}
+                {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Verify Code'}
               </button>
             </motion.form>
           )}
@@ -409,53 +460,55 @@ export default function Login() {
               className="space-y-4"
             >
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-text2 ml-1">New Password</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 ml-1">New Password</label>
                 <div className="relative group">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a new password"
-                    className="w-full pl-10 pr-12 py-2.5 bg-surface2 border border-border rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring transition-all"
+                    className="w-full pl-10 pr-12 py-2.5 bg-surface2/30 dark:bg-surface2/15 border border-border/40 dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent/80 focus:ring-4 focus:ring-accent/10 transition-all peer text-xs"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text3 hover:text-text transition-colors"
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-accent to-purple transition-all duration-300 peer-focus:w-full rounded-full" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-text2 ml-1">Confirm New Password</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 ml-1">Confirm New Password</label>
                 <div className="relative group">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text3 transition-colors group-focus-within:text-accent" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm your new password"
-                    className="w-full pl-10 pr-12 py-2.5 bg-surface2 border border-border rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring transition-all"
+                    className="w-full pl-10 pr-12 py-2.5 bg-surface2/30 dark:bg-surface2/15 border border-border/40 dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent/80 focus:ring-4 focus:ring-accent/10 transition-all peer text-xs"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text3 hover:text-text transition-colors"
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-accent to-purple transition-all duration-300 peer-focus:w-full rounded-full" />
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 rounded-xl transition-all shadow-main hover:shadow-glow flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                className="w-full bg-gradient-to-r from-accent via-indigo-600 to-purple hover:opacity-95 text-white font-semibold py-3 rounded-xl transition-all active:scale-[0.98] duration-150 shadow-glow hover:shadow-accent/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2 text-xs"
               >
-                {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Reset Password'}
+                {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Reset Password'}
               </button>
             </motion.form>
           )}
