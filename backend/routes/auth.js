@@ -58,13 +58,10 @@ router.post('/register', async (req, res) => {
     const trimmedEmail = email.trim();
 
     const existingAdmin = await Admin.findOne({
-      $or: [
-        { username: { $regex: new RegExp(`^\\s*${escapeRegex(trimmedUsername)}\\s*$`, 'i') } },
-        { email: { $regex: new RegExp(`^\\s*${escapeRegex(trimmedEmail)}\\s*$`, 'i') } }
-      ]
+      username: { $regex: new RegExp(`^\\s*${escapeRegex(trimmedUsername)}\\s*$`, 'i') }
     });
     if (existingAdmin) {
-      return res.status(400).json({ message: 'Username or Email already exists' });
+      return res.status(400).json({ message: 'Username already exists' });
     }
 
     const salt = await bcrypt.genSalt(10);

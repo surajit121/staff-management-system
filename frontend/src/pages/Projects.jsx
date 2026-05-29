@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Building2, Code, MapPin, User, Edit2, Trash2, Loader2, Plus, Calculator, Paperclip, X, FileText, Image } from 'lucide-react';
+import { Building2, Code, MapPin, User, Edit2, Trash2, Loader2, Plus, Calculator, Paperclip, X, FileText, Image, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProjects } from '../hooks/useResource';
 import { cn, formatDate } from '../lib/utils';
@@ -328,7 +328,10 @@ export default function Projects() {
 
   // Auto-calculate logic
   const watchedDetails = form.watch('expensiveDetails');
-  
+  const watchedBudget = form.watch('budget');
+  const liveSubtotal = (watchedDetails || []).reduce((acc, item) => acc + ((Number(item.quantity) || 0) * (Number(item.rate) || 0)), 0);
+  const budgetExceeded = watchedBudget > 0 && liveSubtotal > watchedBudget;
+
   useEffect(() => {
     syncCalculations(watchedDetails);
   }, [watchedDetails]);
@@ -399,12 +402,17 @@ export default function Projects() {
                   >
                     <td className="px-6 py-4">
                       <div className="text-[14.5px] font-bold text-text mb-0.5">{p.name}</div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                          <span className="px-1.5 py-0.5 rounded bg-surface2 text-[10px] font-mono text-text2">CODE: {p.code}</span>
                          <span className={cn(
                           "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest",
                           p.status === 'Active' ? "bg-green-light text-green" : "bg-amber-light text-amber"
                          )}>{p.status}</span>
+                         {p.budget > 0 && (p.expense || 0) > p.budget && (
+                           <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-light text-red text-[10px] font-bold uppercase tracking-widest animate-pulse">
+                             <AlertTriangle size={10} /> Over Budget
+                           </span>
+                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -624,12 +632,31 @@ export default function Projects() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-bold uppercase text-text3 tracking-wider">Subtotal:</span>
-                    <div className="bg-green/10 border border-green/20 px-3 py-1.5 rounded-lg text-green font-bold text-[13px] min-w-[100px] text-right">
-                      {/* Calculate the live total based on current field values instead of waiting for form watch */}
-                      {fields ? '₹ ' + fields.reduce((acc, curr, i) => acc + (Number(form.getValues('expensiveDetails.' + i + '.quantity')) * Number(form.getValues('expensiveDetails.' + i + '.rate')) || 0), 0) : '₹ 0'}
+                    <div className={cn(
+                      "px-3 py-1.5 rounded-lg font-bold text-[13px] min-w-[100px] text-right border",
+                      budgetExceeded
+                        ? "bg-red/10 border-red/30 text-red"
+                        : "bg-green/10 border-green/20 text-green"
+                    )}>
+                      ₹ {liveSubtotal.toLocaleString()}
                     </div>
                   </div>
                 </div>
+
+                {/* Budget Exceeded Alert Banner */}
+                {budgetExceeded && (
+                  <div className="flex items-start gap-3 mt-2 p-3 rounded-xl bg-red/10 border border-red/30 animate-pulse">
+                    <div className="p-1.5 rounded-lg bg-red/20 text-red shrink-0 mt-0.5">
+                      <AlertTriangle size={14} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-red uppercase tracking-wider">⚠ Budget Exceeded!</p>
+                      <p className="text-[11px] text-red/80 mt-0.5">
+                        Expense <span className="font-bold">₹{liveSubtotal.toLocaleString()}</span> exceeds the total budget of <span className="font-bold">₹{Number(watchedBudget).toLocaleString()}</span>. Overrun: <span className="font-bold">₹{(liveSubtotal - Number(watchedBudget)).toLocaleString()}</span>
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="status" render={({ field }) => (

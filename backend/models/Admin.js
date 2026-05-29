@@ -9,8 +9,7 @@ const AdminSchema = new mongoose.Schema({
   email: {
     type: String,
     // sparse allows unique indexing but ignoring nulls for backwards compatibility
-    sparse: true,
-    unique: true
+    sparse: true
   },
   password: {
     type: String,

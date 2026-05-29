@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import { Combobox } from "../components/ui/combobox";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 
@@ -313,16 +314,16 @@ export default function PendingBilling() {
                 <FormField control={form.control} name="project" render={({ field }) => (
                   <FormItem className="space-y-1">
                     <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Billing Project</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
-                          <SelectValue placeholder="Project Code" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-surface border-border">
-                        {projects.map(p => <SelectItem key={p._id} value={p.code}>{p.code} - {p.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Combobox
+                        options={(projects || []).map(p => ({ value: p.code, label: `${p.code} - ${p.name}` }))}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Project Code or Custom Name"
+                        className="bg-surface border-border/60"
+                      />
+                    </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="item" render={({ field }) => (

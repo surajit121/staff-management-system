@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plane, MapPin, Clock, Edit2, Trash2, Loader2, Plus, ArrowRight, Download } from 'lucide-react';
+import { Plane, MapPin, Clock, Edit2, Trash2, Loader2, Plus, ArrowRight, Download, Check, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTravel, useStaff } from '../hooks/useResource';
 import { cn, formatDate } from '../lib/utils';
@@ -50,6 +50,81 @@ const travelSchema = z.object({
   })).min(1, "At least one transport mode is required"),
   purpose: z.string().min(3, "Purpose is required"),
 });
+
+const StaffSelect = ({ staffList, value, onChange }) => {
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState('');
+  const inputRef = React.useRef(null);
+  const dropdownRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+        setSearch('');
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedStaff = staffList.find(s => s._id === value);
+  const filteredStaff = staffList.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div 
+        className={cn(
+          "flex h-9 w-full items-center justify-between rounded-md border border-border/60 bg-surface px-3 py-2 text-xs focus-within:ring-2 focus-within:ring-accent cursor-text",
+          !open && !value && "text-text3"
+        )}
+        onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 10); }}
+      >
+        {!open && !search ? (
+          <span className="truncate">{selectedStaff ? selectedStaff.name : "Select or type traveler..."}</span>
+        ) : (
+          <input
+            ref={inputRef}
+            type="text"
+            className="w-full bg-transparent outline-none text-text placeholder:text-text3"
+            placeholder="Search traveler..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
+            autoFocus
+          />
+        )}
+        <ChevronDown className="h-4 w-4 opacity-50 text-text2 shrink-0 ml-2" />
+      </div>
+
+      {open && (
+        <div className="absolute z-50 mt-1 max-h-[200px] w-full overflow-y-auto rounded-md border border-border bg-surface py-1 shadow-md custom-scrollbar">
+          {filteredStaff.length > 0 ? filteredStaff.map(s => (
+            <div
+              key={s._id}
+              className={cn(
+                "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-xs outline-none hover:bg-accent/10 hover:text-accent",
+                value === s._id ? "bg-accent/10 text-accent font-medium" : "text-text"
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange(s._id);
+                setSearch("");
+                setOpen(false);
+              }}
+            >
+              <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                {value === s._id && <Check className="h-4 w-4" />}
+              </span>
+              {s.name}
+            </div>
+          )) : (
+            <div className="py-2 px-3 text-xs text-text3 text-center">No traveler found</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function TravelHistory() {
   const { data: trips, isLoading, create, update, remove, isCreating, isUpdating } = useTravel();
@@ -295,8 +370,8 @@ export default function TravelHistory() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
-          <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
+        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0 flex flex-col max-h-[90vh]">
+          <div className="p-4 px-5 border-b border-border/60 bg-surface2/25 shrink-0">
             <DialogHeader className="space-y-0.5">
               <DialogTitle className="text-lg font-bold tracking-tight text-text">
                 {editingRecord ? 'Edit Travel Log' : 'New Travel Request'}
@@ -307,20 +382,14 @@ export default function TravelHistory() {
             </DialogHeader>
           </div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="p-5 space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-5 space-y-4 flex-1 overflow-y-auto custom-scrollbar">
               <FormField control={form.control} name="staffId" render={({ field }) => (
                 <FormItem className="space-y-1">
                   <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Traveller</FormLabel>
-                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="bg-surface border-border/60 h-9 text-xs">
-                        <SelectValue placeholder="Select Traveler" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="bg-surface border-border">
-                      {staffList.map(s => <SelectItem key={s._id} value={s._id}>{s.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                   <FormControl>
+                    <StaffSelect staffList={staffList} value={field.value} onChange={field.onChange} />
+                  </FormControl>
                   <FormMessage className="text-[10px] mt-0.5" />
                 </FormItem>
               )} />
@@ -364,7 +433,7 @@ export default function TravelHistory() {
                   </Button>
                 </div>
                 
-                <div className="space-y-3 max-h-[25vh] overflow-y-auto pr-1.5 custom-scrollbar">
+                <div className="space-y-3">
                   {fields.map((field, index) => (
                     <div key={field.id} className="grid grid-cols-12 gap-2 items-end group relative border-b border-border/50 pb-3 last:border-0 last:pb-0">
                       <div className="col-span-12 md:col-span-4">
@@ -453,7 +522,8 @@ export default function TravelHistory() {
                   <FormMessage className="text-[10px] mt-0.5" />
                 </FormItem>
               )} />
-              <DialogFooter className="pt-3 border-t border-border/60 gap-2 sm:gap-0">
+              </div>
+              <DialogFooter className="p-4 border-t border-border/60 gap-2 sm:gap-0 bg-surface shrink-0">
                 <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
                   Cancel
                 </Button>
