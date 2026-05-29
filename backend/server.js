@@ -27,7 +27,10 @@ import { authMiddleware } from './middleware/auth.js';
 import bcrypt from 'bcryptjs';
 import { cacheMiddleware, clearCache } from './utils/cache.js';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Strict environment safety checks
 if (!process.env.JWT_SECRET) {
@@ -38,10 +41,6 @@ if (!process.env.JWT_SECRET) {
     console.warn('⚠️ WARNING: JWT_SECRET environment variable is not defined. Falling back to an insecure fallback.');
   }
 }
-
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
