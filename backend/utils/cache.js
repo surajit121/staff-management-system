@@ -38,10 +38,24 @@ export const cacheMiddleware = (duration = 60) => async (req, res, next) => {
 
 export const clearCache = async (pattern) => {
   if (!redis) return;
-  const keys = await redis.keys(`cache:${pattern}*`);
-  if (keys.length > 0) {
-    await redis.del(...keys);
-  }
+  const stream = redis.scanStream({
+    match: `cache:${pattern}*`,
+    count: 100,
+  });
+
+  stream.on('data', async (keys) => {
+    if (keys.length > 0) {
+      try {
+        await redis.del(keys);
+      } catch (err) {
+        console.error('Failed to delete cache keys during invalidation:', err);
+      }
+    }
+  });
+
+  stream.on('error', (err) => {
+    console.error('Redis scanStream Error during cache clearing:', err);
+  });
 };
 
 export default redis;

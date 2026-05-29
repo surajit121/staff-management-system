@@ -29,6 +29,17 @@ import { cacheMiddleware, clearCache } from './utils/cache.js';
 
 dotenv.config();
 
+// Strict environment safety checks
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('❌ FATAL ERROR: JWT_SECRET environment variable is not defined!');
+    process.exit(1);
+  } else {
+    console.warn('⚠️ WARNING: JWT_SECRET environment variable is not defined. Falling back to an insecure fallback.');
+  }
+}
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -60,7 +71,25 @@ const upload = multer({
 });
 
 app.use(compression());
-app.use(cors());
+
+// Secure CORS configuration
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 // Serve uploaded files as static assets
 app.use('/uploads', express.static(uploadsDir));

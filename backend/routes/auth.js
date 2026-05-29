@@ -3,14 +3,24 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Admin } from '../models/Admin.js';
 import { sendEmail } from '../utils/sendEmail.js';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
+
+// Define rate limiter for critical authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 requests per window
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes' },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 const escapeRegex = (string) => {
   return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
 
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -90,7 +100,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', authLimiter, async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -137,7 +147,7 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-router.post('/verify-reset-code', async (req, res) => {
+router.post('/verify-reset-code', authLimiter, async (req, res) => {
   try {
     const { email, code } = req.body;
     
@@ -160,7 +170,7 @@ router.post('/verify-reset-code', async (req, res) => {
   }
 });
 
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', authLimiter, async (req, res) => {
   try {
     const { email, code, newPassword } = req.body;
     
