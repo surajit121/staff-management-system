@@ -331,6 +331,7 @@ export default function Login() {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="Choose an admin username"
+                        autoComplete="off"
                         className="w-full pl-12 pr-4 py-3 bg-surface2/30 dark:bg-surface2/15 border border-border dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all text-sm font-medium"
                       />
                     </div>
@@ -345,6 +346,7 @@ export default function Login() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="admin@company.com"
+                        autoComplete="off"
                         className="w-full pl-12 pr-4 py-3 bg-surface2/30 dark:bg-surface2/15 border border-border dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all text-sm font-medium"
                       />
                     </div>
@@ -359,6 +361,7 @@ export default function Login() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
+                        autoComplete="new-password"
                         className="w-full pl-12 pr-12 py-3 bg-surface2/30 dark:bg-surface2/15 border border-border dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all text-sm font-medium"
                       />
                       <button
@@ -380,6 +383,7 @@ export default function Login() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Confirm password"
+                        autoComplete="new-password"
                         className="w-full pl-12 pr-12 py-3 bg-surface2/30 dark:bg-surface2/15 border border-border dark:border-white/5 rounded-xl text-text placeholder:text-text3 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all text-sm font-medium"
                       />
                       <button
