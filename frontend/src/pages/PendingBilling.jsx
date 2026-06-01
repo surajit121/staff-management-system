@@ -300,7 +300,7 @@ export default function PendingBilling() {
       </div>
 
        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+        <DialogContent className="sm:max-w-[680px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0 flex flex-col max-h-[90vh]">
           <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
             <DialogHeader className="space-y-0.5">
               <DialogTitle className="text-lg font-bold tracking-tight text-text">
@@ -313,7 +313,8 @@ export default function PendingBilling() {
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="p-5 space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0">
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="project" render={({ field }) => (
                   <FormItem className="space-y-1">
@@ -532,16 +533,19 @@ export default function PendingBilling() {
                   )}
                 </div>
               </div>
-              
-              <DialogFooter className="pt-3 border-t border-border/60 gap-2 sm:gap-0">
-                <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isCreating || isUpdating} className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs">
-                  {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                  {editingRecord ? 'Save Changes' : 'Confirm Entry'}
-                </Button>
-              </DialogFooter>
+              </div>
+
+              <div className="px-5 py-3 border-t border-border/60 bg-surface2/25 shrink-0">
+                <DialogFooter className="gap-2 sm:gap-0">
+                  <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isCreating || isUpdating} className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs">
+                    {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                    {editingRecord ? 'Save Changes' : 'Confirm Entry'}
+                  </Button>
+                </DialogFooter>
+              </div>
             </form>
           </Form>
         </DialogContent>
