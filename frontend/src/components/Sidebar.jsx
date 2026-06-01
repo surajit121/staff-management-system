@@ -77,10 +77,10 @@ export default function Sidebar({ isOpen, onClose }) {
           title="StaffSync Pro"
         >
           <span className="absolute inset-0 rounded-2xl blur-sm transition-all duration-300"
-            style={{ background: 'rgba(91,138,248,0.25)' }} />
+            style={{ background: 'rgba(26,107,255,0.25)' }} />
           <span className="relative flex items-center justify-center w-full h-full rounded-2xl shadow-lg border transition-transform duration-150 active:scale-90"
             style={{
-              background: 'linear-gradient(135deg, #3B6CF6 0%, #6B8DF9 60%, #8BA5FB 100%)',
+              background: 'linear-gradient(135deg, #1A6BFF 0%, #0040CC 100%)',
               borderColor: 'rgba(255,255,255,0.2)',
             }}
           >
@@ -213,7 +213,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <div 
             className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white shrink-0 shadow-sm transition-transform duration-300 hover:scale-105"
             style={{
-              background: 'linear-gradient(135deg, var(--color-accent) 0%, #6B8DF9 100%)',
+              background: 'linear-gradient(135deg, var(--color-accent) 0%, #60A5FA 100%)',
             }}
           >
             {(user.username || 'A').trim().charAt(0).toUpperCase()}

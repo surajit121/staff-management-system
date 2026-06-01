@@ -21,11 +21,11 @@
     --color-text2:     #334155;
     --color-text3:     #64748B;
 
-    /* Brand / Accent — Indigo */
-    --color-accent:       #4F46E5;
-    --color-accent-hover: #4338CA;
-    --color-accent-light: #EEF2FF;
-    --color-accent-ring:  rgba(79, 70, 229, 0.22);
+    /* Brand / Accent — Corporate Electric Blue */
+    --color-accent:       #1A6BFF;
+    --color-accent-hover: #0052E0;
+    --color-accent-light: #EFF6FF;
+    --color-accent-ring:  rgba(26, 107, 255, 0.20);
 
     /* Sidebar — Deep Slate */
     --color-sidebar-bg:         #0F172A;
@@ -34,8 +34,8 @@
     --color-sidebar-text:       rgba(255,255,255,0.92);
     --color-sidebar-text2:      rgba(255,255,255,0.60);
     --color-sidebar-text3:      rgba(255,255,255,0.30);
-    --color-sidebar-active-bg:  rgba(79, 70, 229, 0.15);
-    --color-sidebar-active-text:#818CF8;
+    --color-sidebar-active-bg:  rgba(26, 107, 255, 0.12);
+    --color-sidebar-active-text:#1A6BFF;
     --color-sidebar-hover-bg:   rgba(255,255,255,0.05);
 
     /* Semantic colors */
@@ -56,9 +56,9 @@
 
     /* Shadows */
     --shadow-sm:   0 1px 2px rgba(15, 23, 42, 0.05);
-    --shadow-main: 0 1px 3px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(79, 70, 229, 0.04);
-    --shadow-card: 0 0 0 1px rgba(79, 70, 229, 0.03), 0 4px 20px rgba(15, 23, 42, 0.05);
-    --shadow-glow: 0 0 24px rgba(79, 70, 229, 0.22);
+    --shadow-main: 0 1px 3px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(26, 107, 255, 0.04);
+    --shadow-card: 0 0 0 1px rgba(26, 107, 255, 0.03), 0 4px 20px rgba(15, 23, 42, 0.05);
+    --shadow-glow: 0 0 24px rgba(26, 107, 255, 0.22);
 
     /* Chart colors (used in recharts) */
     --chart-grid:           #E2E8F0;
@@ -88,10 +88,10 @@
     --color-text3:     #64748B;
 
     /* Brand / Accent */
-    --color-accent:       #818CF8;
-    --color-accent-hover: #A5B4FC;
-    --color-accent-light: #1E1B4B;
-    --color-accent-ring:  rgba(129, 140, 248, 0.25);
+    --color-accent:       #3B82F6;
+    --color-accent-hover: #60A5FA;
+    --color-accent-light: #172554;
+    --color-accent-ring:  rgba(59, 130, 246, 0.25);
 
     /* Sidebar — Very Dark Slate */
     --color-sidebar-bg:         #020617;
@@ -100,8 +100,8 @@
     --color-sidebar-text:       rgba(255,255,255,0.90);
     --color-sidebar-text2:      rgba(255,255,255,0.50);
     --color-sidebar-text3:      rgba(255,255,255,0.25);
-    --color-sidebar-active-bg:  rgba(129, 140, 248, 0.15);
-    --color-sidebar-active-text:#A5B4FC;
+    --color-sidebar-active-bg:  rgba(59, 130, 246, 0.15);
+    --color-sidebar-active-text:#60A5FA;
     --color-sidebar-hover-bg:   rgba(255,255,255,0.05);
 
     /* Semantic colors */
@@ -124,7 +124,7 @@
     --shadow-sm:   0 1px 2px rgba(0,0,0,0.80);
     --shadow-main: 0 1px 3px rgba(0,0,0,0.90), 0 4px 12px rgba(0,0,0,0.80);
     --shadow-card: 0 0 0 1px rgba(255,255,255,0.03), 0 4px 20px rgba(0,0,0,0.90);
-    --shadow-glow: 0 0 24px rgba(129, 140, 248, 0.28);
+    --shadow-glow: 0 0 24px rgba(59, 130, 246, 0.25);
 
     /* Chart colors */
     --chart-grid:           #1E293B;
