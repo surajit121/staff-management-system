@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, AlertCircle, TrendingDown, Edit2, Trash2, Loader2, Plus, Receipt, Paperclip, X, Eye, FilePlus } from 'lucide-react';
+import { FileText, AlertCircle, TrendingDown, Edit2, Trash2, Loader2, Plus, Receipt, Paperclip, X, Eye, FilePlus, MapPin, User, Wallet, BarChart3, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBilling, useProjects } from '../hooks/useResource';
 import { cn, formatDate } from '../lib/utils';
@@ -112,6 +112,10 @@ export default function PendingBilling() {
       attachments: [],
     },
   });
+
+  // Track selected project for the info card (must be after useForm)
+  const watchedProject = form.watch('project');
+  const selectedProjectData = (projects || []).find(p => p.code === watchedProject) || null;
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -336,6 +340,91 @@ export default function PendingBilling() {
                   </FormItem>
                 )} />
               </div>
+
+              {/* ── PROJECT MASTER INFO CARD ── */}
+              <AnimatePresence>
+                {selectedProjectData && (
+                  <motion.div
+                    key="project-info-card"
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: 'auto', marginTop: 4 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="rounded-xl border border-accent/20 bg-accent/5 p-3 space-y-2.5">
+                      {/* Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-md bg-accent/15 flex items-center justify-center">
+                            <Package size={12} className="text-accent" />
+                          </div>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-accent">Project Master Data</span>
+                        </div>
+                        <span className={cn(
+                          "px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest",
+                          selectedProjectData.status === 'Active' ? 'bg-green-light text-green' :
+                          selectedProjectData.status === 'Completed' ? 'bg-accent/10 text-accent' :
+                          'bg-amber-light text-amber'
+                        )}>{selectedProjectData.status}</span>
+                      </div>
+
+                      {/* Project Name */}
+                      <div className="text-[13px] font-bold text-text">{selectedProjectData.name}</div>
+
+                      {/* Meta row: manager & location */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <User size={11} className="text-text3 shrink-0" />
+                          <span className="text-[11px] text-text2 truncate">{selectedProjectData.manager}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <MapPin size={11} className="text-text3 shrink-0" />
+                          <span className="text-[11px] text-text2 truncate">{selectedProjectData.location}</span>
+                        </div>
+                      </div>
+
+                      {/* Financials row */}
+                      <div className="grid grid-cols-3 gap-2 pt-1 border-t border-accent/10">
+                        <div className="space-y-0.5">
+                          <div className="text-[9px] font-bold uppercase tracking-widest text-text3">Budget</div>
+                          <div className="text-[12px] font-bold text-green">₹{(selectedProjectData.budget || 0).toLocaleString()}</div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="text-[9px] font-bold uppercase tracking-widest text-text3">Total Exp.</div>
+                          <div className="text-[12px] font-bold text-red">₹{(selectedProjectData.expense || 0).toLocaleString()}</div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="text-[9px] font-bold uppercase tracking-widest text-text3">Extra Items</div>
+                          <div className="text-[12px] font-bold text-amber">
+                            ₹{((selectedProjectData.expensiveDetails || []).reduce((a, d) => a + (d.amount || 0), 0)).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Expense Items list */}
+                      {(selectedProjectData.expensiveDetails || []).length > 0 && (
+                        <div className="pt-1 border-t border-accent/10 space-y-1">
+                          <div className="text-[9px] font-bold uppercase tracking-widest text-text3 flex items-center gap-1">
+                            <BarChart3 size={9} /> Expense Items
+                          </div>
+                          <div className="space-y-1 max-h-[100px] overflow-y-auto pr-0.5">
+                            {(selectedProjectData.expensiveDetails || []).map((d, i) => (
+                              <div key={i} className="flex items-center justify-between text-[10px] py-0.5 border-b border-border/30 last:border-0">
+                                <span className="text-text2 font-medium truncate max-w-[55%]">{d.item || '—'}</span>
+                                <div className="flex items-center gap-2 text-text3 shrink-0">
+                                  <span>x{d.quantity || 0}</span>
+                                  <span className="font-bold text-text">₹{(d.amount || 0).toLocaleString()}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <FormField control={form.control} name="vendor" render={({ field }) => (
                 <FormItem className="space-y-1">
                   <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Vendor / Supplier</FormLabel>
