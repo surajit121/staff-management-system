@@ -6,6 +6,12 @@ export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
+    const migrated = localStorage.getItem('staffsync-theme-migrated-v3');
+    if (!migrated) {
+      localStorage.setItem('staffsync-theme-migrated-v3', 'true');
+      localStorage.setItem('staffsync-theme', 'light');
+      return 'light';
+    }
     return localStorage.getItem('staffsync-theme') || 'light';
   });
 
