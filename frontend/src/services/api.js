@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
+if (!import.meta.env.VITE_API_BASE_URL && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+  console.error('❌ VITE_API_BASE_URL environment variable is not defined! API requests will fall back to localhost and fail. Please set VITE_API_BASE_URL in your Render static site dashboard.');
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  baseURL,
 });
 
 api.interceptors.request.use((config) => {

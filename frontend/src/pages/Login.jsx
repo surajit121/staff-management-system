@@ -50,7 +50,7 @@ export default function Login() {
       toast.success('Login successful!');
       navigate('/');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Invalid credentials');
+      toast.error(error.response?.data?.message || error.message || 'Invalid credentials');
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +74,7 @@ export default function Login() {
       toast.success('Registration successful! Welcome to StaffSync Pro.');
       navigate('/');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      toast.error(error.response?.data?.message || error.message || 'Registration failed');
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +93,7 @@ export default function Login() {
       toast.success(response.data.message || 'Verification code sent!');
       setViewMode('forgot_verify');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to process request');
+      toast.error(error.response?.data?.message || error.message || 'Failed to process request');
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +112,7 @@ export default function Login() {
       toast.success('Code verified successfully');
       setViewMode('forgot_reset');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Invalid or expired code');
+      toast.error(error.response?.data?.message || error.message || 'Invalid or expired code');
     } finally {
       setIsLoading(false);
     }
@@ -135,7 +135,7 @@ export default function Login() {
       toast.success(response.data.message || 'Password reset successfully');
       switchMode('login');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to reset password');
+      toast.error(error.response?.data?.message || error.message || 'Failed to reset password');
     } finally {
       setIsLoading(false);
     }
