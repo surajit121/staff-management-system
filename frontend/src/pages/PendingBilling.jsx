@@ -42,9 +42,9 @@ const billingSchema = z.object({
   project: z.string().min(1, "Project reference required"),
   item: z.string().min(2, "Item name is required"),
   vendor: z.string().min(2, "Vendor name is required"),
-  qty: z.coerce.number().min(1, "Valid quantity required"),
-  rate: z.coerce.number().min(0.01, "Valid rate required"),
-  amount: z.coerce.number().min(0.01, "Valid amount required"),
+  qty: z.coerce.number().min(0).optional().default(0),
+  rate: z.coerce.number().min(0).optional().default(0),
+  amount: z.coerce.number().min(0.01, "Valid total amount is required"),
   deliveredDate: z.string().min(1, "Date is required"),
   status: z.enum(['Pending', 'Billed', 'Cancelled']).default('Pending'),
   attachments: z.array(z.object({
@@ -149,11 +149,13 @@ export default function PendingBilling() {
     form.setValue('attachments', currentAttachments.filter(a => a.filename !== filename));
   };
 
-  // Auto-calculate amount when qty or rate changes
+  // Auto-calculate amount when qty or rate are set
   const qty = form.watch('qty');
   const rate = form.watch('rate');
   useEffect(() => {
-    form.setValue('amount', (qty || 0) * (rate || 0));
+    if (qty > 0 && rate > 0) {
+      form.setValue('amount', qty * rate);
+    }
   }, [qty, rate, form]);
 
   const onSubmit = async (values) => {
@@ -455,8 +457,9 @@ export default function PendingBilling() {
                   <FormItem className="space-y-1">
                     <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Total</FormLabel>
                     <FormControl>
-                      <Input type="number" disabled {...field} className="bg-surface2 border-border/60 h-9 px-3 text-xs cursor-not-allowed opacity-70" />
+                      <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
               </div>

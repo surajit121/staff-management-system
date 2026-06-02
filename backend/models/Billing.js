@@ -4,8 +4,8 @@ const billingSchema = new mongoose.Schema({
   project: { type: String, required: true }, // Referencing Project.code
   item: { type: String, required: true },
   vendor: { type: String, required: true },
-  qty: { type: Number, required: true },
-  rate: { type: Number, required: true },
+  qty: { type: Number, default: 0 },
+  rate: { type: Number, default: 0 },
   amount: { type: Number, required: true },
   deliveredDate: { type: String, required: true },
   status: { type: String, enum: ['Pending', 'Billed', 'Cancelled'], default: 'Pending' },
