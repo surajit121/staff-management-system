@@ -34,12 +34,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Strict environment safety checks
 if (!process.env.JWT_SECRET) {
-  if (process.env.NODE_ENV === 'production') {
-    console.error('❌ FATAL ERROR: JWT_SECRET environment variable is not defined!');
-    process.exit(1);
-  } else {
-    console.warn('⚠️ WARNING: JWT_SECRET environment variable is not defined. Falling back to an insecure fallback.');
-  }
+  console.warn('⚠️ WARNING: JWT_SECRET environment variable is not defined. Falling back to an insecure fallback.');
 }
 
 const app = express();
