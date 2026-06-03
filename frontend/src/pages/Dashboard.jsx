@@ -434,7 +434,9 @@ export default function Dashboard() {
                     <td className="px-4 py-3 font-bold text-text">{e.staffId?.name || 'Unknown'}</td>
                     <td className="px-4 py-3 text-text2">
                        <div className="font-semibold text-text">{e.purpose}</div>
-                       <div className="text-[11px] text-accent uppercase">{e.category}</div>
+                       <div className="text-[11px] text-accent uppercase">
+                         {Array.isArray(e.category) ? e.category.join(', ') : e.category}
+                       </div>
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-amber">₹{e.amount.toLocaleString()}</td>
                   </tr>
