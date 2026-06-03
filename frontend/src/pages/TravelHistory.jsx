@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plane, MapPin, Clock, Edit2, Trash2, Loader2, Plus, ArrowRight, Download, Check, ChevronDown } from 'lucide-react';
+import { Plane, MapPin, Clock, Edit2, Trash2, Loader2, Plus, ArrowRight, Download, Check, ChevronDown, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTravel, useStaff } from '../hooks/useResource';
 import { cn, formatDate } from '../lib/utils';
@@ -38,7 +38,7 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 
 const travelSchema = z.object({
-  staffId: z.string().min(1, "Staff selection is required"),
+  staffId: z.array(z.string()).min(1, "At least one traveler is required"),
   date: z.string().min(1, "Date is required"),
   from: z.string().min(2, "Origin is required"),
   to: z.string().min(2, "Destination is required"),
@@ -51,10 +51,9 @@ const travelSchema = z.object({
   purpose: z.string().min(3, "Purpose is required"),
 });
 
-const StaffSelect = ({ staffList, value, onChange }) => {
-  const [open, setOpen] = React.useState(false);
-  const [search, setSearch] = React.useState('');
-  const inputRef = React.useRef(null);
+const TravelerMultiSelect = ({ staffList, value = [], onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const dropdownRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -68,58 +67,99 @@ const StaffSelect = ({ staffList, value, onChange }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedStaff = staffList.find(s => s._id === value);
+  const selectedList = Array.isArray(value) ? value : (value ? [value] : []);
+
+  const toggle = (id) => {
+    const updated = selectedList.includes(id)
+      ? selectedList.filter(v => v !== id)
+      : [...selectedList, id];
+    onChange(updated);
+  };
+
+  const selected = staffList.filter(s => selectedList.includes(s._id));
   const filteredStaff = staffList.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="relative" ref={dropdownRef}>
       <div 
         className={cn(
-          "flex h-9 w-full items-center justify-between rounded-md border border-border/60 bg-surface px-3 py-2 text-xs focus-within:ring-2 focus-within:ring-accent cursor-text",
-          !open && !value && "text-text3"
+          "flex h-9 w-full items-center justify-between rounded-md border border-border/60 bg-surface px-3 py-2 text-xs focus-within:ring-2 focus-within:ring-accent cursor-pointer",
+          selected.length === 0 && "text-text3"
         )}
-        onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 10); }}
+        onClick={() => setOpen(o => !o)}
       >
-        {!open && !search ? (
-          <span className="truncate">{selectedStaff ? selectedStaff.name : "Select or type traveler..."}</span>
-        ) : (
-          <input
-            ref={inputRef}
-            type="text"
-            className="w-full bg-transparent outline-none text-text placeholder:text-text3"
-            placeholder="Search traveler..."
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-            autoFocus
-          />
-        )}
+        <span className="truncate flex-1 text-left">
+          {selected.length === 0
+            ? "Choose traveler(s)..."
+            : selected.length === 1
+              ? selected[0].name
+              : `${selected.length} travelers selected`}
+        </span>
         <ChevronDown className="h-4 w-4 opacity-50 text-text2 shrink-0 ml-2" />
       </div>
 
       {open && (
-        <div className="absolute z-50 mt-1 max-h-[200px] w-full overflow-y-auto rounded-md border border-border bg-surface py-1 shadow-md custom-scrollbar">
-          {filteredStaff.length > 0 ? filteredStaff.map(s => (
-            <div
+        <div className="absolute z-50 mt-1 max-h-[220px] w-full overflow-y-auto rounded-md border border-border bg-surface py-1 shadow-md custom-scrollbar flex flex-col">
+          <div className="p-1.5 border-b border-border/60 shrink-0">
+            <input
+              type="text"
+              className="w-full bg-surface2 border border-border/60 rounded px-2 py-1 text-xs outline-none text-text placeholder:text-text3"
+              placeholder="Search traveler..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+
+          <div className="overflow-y-auto max-h-[160px] py-1 flex-1">
+            {filteredStaff.length > 0 ? filteredStaff.map(s => {
+              const checked = selectedList.includes(s._id);
+              return (
+                <button
+                  key={s._id}
+                  type="button"
+                  className={cn(
+                    "w-full flex items-center gap-2.5 px-3 py-1.5 text-xs hover:bg-accent/10 hover:text-accent transition-colors text-left",
+                    checked && "bg-accent/5 text-accent"
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggle(s._id);
+                  }}
+                >
+                  <div className={cn(
+                    "w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 transition-colors",
+                    checked ? "bg-accent border-accent" : "border-border"
+                  )}>
+                    {checked && <Check size={10} className="text-white" strokeWidth={3} />}
+                  </div>
+                  <span>{s.name}</span>
+                </button>
+              );
+            }) : (
+              <div className="py-2 px-3 text-xs text-text3 text-center">No traveler found</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1.5">
+          {selected.map(s => (
+            <span
               key={s._id}
-              className={cn(
-                "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-xs outline-none hover:bg-accent/10 hover:text-accent",
-                value === s._id ? "bg-accent/10 text-accent font-medium" : "text-text"
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange(s._id);
-                setSearch("");
-                setOpen(false);
-              }}
+              className="inline-flex items-center gap-1 bg-accent/10 text-accent text-[10px] font-semibold px-2 py-0.5 rounded-full"
             >
-              <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                {value === s._id && <Check className="h-4 w-4" />}
-              </span>
               {s.name}
-            </div>
-          )) : (
-            <div className="py-2 px-3 text-xs text-text3 text-center">No traveler found</div>
-          )}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); toggle(s._id); }}
+                className="hover:text-red ml-0.5 shrink-0"
+              >
+                <X size={9} strokeWidth={3} />
+              </button>
+            </span>
+          ))}
         </div>
       )}
     </div>
@@ -137,8 +177,10 @@ export default function TravelHistory() {
 
   const filteredTrips = (trips || []).filter(trip => {
     const q = searchQuery.toLowerCase();
+    const members = Array.isArray(trip.staffId) ? trip.staffId : (trip.staffId ? [trip.staffId] : []);
+    const staffNames = members.map(m => m?.name || '').join(' ').toLowerCase();
     const matchesSearch = !searchQuery || 
-                          (trip.staffId?.name?.toLowerCase() || '').includes(q) ||
+                          staffNames.includes(q) ||
                           (trip.from?.toLowerCase() || '').includes(q) ||
                           (trip.to?.toLowerCase() || '').includes(q) ||
                           (trip.purpose?.toLowerCase() || '').includes(q);
@@ -154,9 +196,11 @@ export default function TravelHistory() {
       const totalDuration = details.reduce((acc, curr) => acc + (Number(curr.duration) || 0), 0) || Number(t.duration) || 0;
       const totalCost = details.reduce((acc, curr) => acc + (Number(curr.cost) || 0), 0) || Number(t.cost) || 0;
       const modes = details.map(d => d.mode).join(', ') || t.mode || '';
+      const members = Array.isArray(t.staffId) ? t.staffId : (t.staffId ? [t.staffId] : []);
+      const staffNames = members.map(m => m?.name || 'Unknown').join(', ');
 
       return {
-        StaffName: t.staffId?.name || 'Unknown',
+        StaffName: staffNames,
         Date: formatDate(t.date, { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-'),
         Mode: modes,
         From: t.from,
@@ -173,7 +217,7 @@ export default function TravelHistory() {
   useEffect(() => {
     const unregisterAdd = registerAddAction(() => {
       form.reset({
-        staffId: '',
+        staffId: [],
         date: dateFilter,
         from: '',
         to: '',
@@ -193,7 +237,7 @@ export default function TravelHistory() {
   const form = useForm({
     resolver: zodResolver(travelSchema),
     defaultValues: {
-      staffId: '',
+      staffId: [],
       date: dateFilter,
       from: '',
       to: '',
@@ -226,8 +270,14 @@ export default function TravelHistory() {
 
   const handleEdit = (record) => {
     setEditingRecord(record);
+    const members = Array.isArray(record.staffId)
+      ? record.staffId.map(m => m?._id || m).filter(Boolean)
+      : record.staffId
+        ? [record.staffId?._id || record.staffId]
+        : [];
+
     form.reset({
-      staffId: record.staffId?._id || record.staffId,
+      staffId: members,
       date: record.date,
       from: record.from,
       to: record.to,
@@ -315,54 +365,81 @@ export default function TravelHistory() {
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
                   ))
-                ) : filteredTrips.map((trip, idx) => (
-                  <motion.tr 
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    key={trip._id} 
-                    className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">
-                          {trip.staffId?.initials || '??'}
-                        </div>
-                        <div>
-                          <div className="text-[14px] font-medium text-text">{trip.staffId?.name || 'Unknown'}</div>
-                          <div className="text-[11px] text-teal font-bold uppercase tracking-wide truncate max-w-[120px]">
-                            {(trip.travelDetails || []).map(d => d.mode).join(', ') || trip.mode}
+                ) : filteredTrips.map((trip, idx) => {
+                  const members = Array.isArray(trip.staffId) ? trip.staffId.filter(Boolean) : (trip.staffId ? [trip.staffId] : []);
+                  return (
+                    <motion.tr 
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      key={trip._id} 
+                      className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {/* Overlapping Avatars */}
+                          <div className="flex -space-x-2 shrink-0">
+                            {members.slice(0, 3).map((m, i) => (
+                              <div
+                                key={m._id || i}
+                                className="w-7 h-7 rounded-full border-2 border-surface flex items-center justify-center text-[9px] font-bold"
+                                style={{
+                                  background: (m.color || '#3B6CF6') + '20',
+                                  color: m.color || '#3B6CF6'
+                                }}
+                                title={m.name}
+                              >
+                                {m.initials || m.name?.slice(0, 2).toUpperCase()}
+                              </div>
+                            ))}
+                            {members.length > 3 && (
+                              <div className="w-7 h-7 rounded-full bg-surface2 border-2 border-surface flex items-center justify-center text-[9px] font-bold text-text3">
+                                +{members.length - 3}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-[13.5px] font-medium text-text">
+                              {members.length === 0
+                                ? 'Unknown'
+                                : members.length === 1
+                                  ? members[0]?.name || 'Unknown'
+                                  : `${members[0]?.name || '?'} +${members.length - 1}`}
+                            </div>
+                            <div className="text-[11px] text-teal font-bold uppercase tracking-wide truncate max-w-[120px]">
+                              {(trip.travelDetails || []).map(d => d.mode).join(', ') || trip.mode}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-[13.5px] font-medium text-text">
-                        {trip.from} <ArrowRight size={12} className="text-text3" /> {trip.to}
-                      </div>
-                      <div className="text-[11px] text-text3 mt-1 uppercase tracking-wider">{trip.purpose}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-[13px] font-bold text-text mb-0.5">
-                        {(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.distance || 0), 0) || trip.distance} km
-                      </div>
-                      <div className="text-[11px] text-text2">
-                        {(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.duration || 0), 0) || trip.duration} min • ₹{(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.cost || 0), 0) || trip.cost}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-[12px] font-bold text-text mb-0.5 uppercase tracking-tighter">{formatDate(trip.date)}</div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={() => handleEdit(trip)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
-                          <Edit2 size={16} />
-                        </button>
-                        <button onClick={() => handleDelete(trip._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 text-[13.5px] font-medium text-text">
+                          {trip.from} <ArrowRight size={12} className="text-text3" /> {trip.to}
+                        </div>
+                        <div className="text-[11px] text-text3 mt-1 uppercase tracking-wider">{trip.purpose}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-[13px] font-bold text-text mb-0.5">
+                          {(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.distance || 0), 0) || trip.distance} km
+                        </div>
+                        <div className="text-[11px] text-text2">
+                          {(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.duration || 0), 0) || trip.duration} min • ₹{(trip.travelDetails || []).reduce((acc, curr) => acc + (curr.cost || 0), 0) || trip.cost}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-[12px] font-bold text-text mb-0.5 uppercase tracking-tighter">{formatDate(trip.date)}</div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
+                          <button onClick={() => handleEdit(trip)} className="p-2 rounded-lg text-text2 hover:bg-accent-light hover:text-accent">
+                            <Edit2 size={16} />
+                          </button>
+                          <button onClick={() => handleDelete(trip._id)} className="p-2 rounded-lg text-text2 hover:bg-red-light hover:text-red">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
               </AnimatePresence>
             </tbody>
           </table>
@@ -386,9 +463,9 @@ export default function TravelHistory() {
               <div className="p-5 space-y-4 flex-1 overflow-y-auto custom-scrollbar">
               <FormField control={form.control} name="staffId" render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Traveller</FormLabel>
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Travellers</FormLabel>
                    <FormControl>
-                    <StaffSelect staffList={staffList} value={field.value} onChange={field.onChange} />
+                    <TravelerMultiSelect staffList={staffList} value={field.value} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage className="text-[10px] mt-0.5" />
                 </FormItem>
@@ -558,28 +635,33 @@ export default function TravelHistory() {
               <tbody>
                 {trips.length === 0 ? (
                   <tr><td colSpan={4} className="p-8 text-center text-text3">No trips found.</td></tr>
-                ) : trips.map(trip => (
-                  <tr key={trip._id} className="border-b border-border/50 hover:bg-surface2/40 transition-colors">
-                    <td className="px-4 py-3 font-medium text-text">{trip.staffId?.name || 'Unknown'}</td>
-                    <td className="px-4 py-3 text-text2">
-                       <div className="flex items-center gap-1.5 font-bold text-text">
-                        {trip.from} <ArrowRight size={10} className="text-text3" /> {trip.to}
-                      </div>
-                      <div className="text-[10px] uppercase font-medium mt-0.5 opacity-70">{trip.purpose}</div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="font-bold text-teal">
-                        {(trip.travelDetails || []).reduce((a, c) => a + (Number(c.distance) || 0), 0) || Number(trip.distance) || 0} km
-                      </div>
-                      <div className="text-[11px] text-text3 font-mono">
-                        ₹{(trip.travelDetails || []).reduce((a, c) => a + (Number(c.cost) || 0), 0) || Number(trip.cost) || 0}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right font-bold text-text2 uppercase tracking-tighter">
-                      {formatDate(trip.date, { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
-                    </td>
-                  </tr>
-                ))}
+                ) : trips.map(trip => {
+                  const members = Array.isArray(trip.staffId) ? trip.staffId : (trip.staffId ? [trip.staffId] : []);
+                  return (
+                    <tr key={trip._id} className="border-b border-border/50 hover:bg-surface2/40 transition-colors">
+                      <td className="px-4 py-3 font-medium text-text">
+                        {members.map(m => m?.name || 'Unknown').join(', ')}
+                      </td>
+                      <td className="px-4 py-3 text-text2">
+                         <div className="flex items-center gap-1.5 font-bold text-text">
+                          {trip.from} <ArrowRight size={10} className="text-text3" /> {trip.to}
+                        </div>
+                        <div className="text-[10px] uppercase font-medium mt-0.5 opacity-70">{trip.purpose}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="font-bold text-teal">
+                          {(trip.travelDetails || []).reduce((a, c) => a + (Number(c.distance) || 0), 0) || Number(trip.distance) || 0} km
+                        </div>
+                        <div className="text-[11px] text-text3 font-mono">
+                          ₹{(trip.travelDetails || []).reduce((a, c) => a + (Number(c.cost) || 0), 0) || Number(trip.cost) || 0}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-text2 uppercase tracking-tighter">
+                        {formatDate(trip.date, { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const travelSchema = new mongoose.Schema({
-  staffId: { type: mongoose.Schema.Types.ObjectId, ref: 'Staff', required: true },
+  staffId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Staff' }],
   date: { type: String, required: true },
   from: { type: String, required: true },
   to: { type: String, required: true },
