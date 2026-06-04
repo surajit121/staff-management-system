@@ -135,19 +135,49 @@
   }
 
   /* ══════════════════════════════════════════════
-     GLOBAL SMOOTH THEME TRANSITION
+     GLOBAL OPTIMIZED THEME TRANSITION
      ══════════════════════════════════════════════ */
   .theme-transitioning,
-  .theme-transitioning *,
-  .theme-transitioning *::before,
-  .theme-transitioning *::after {
+  .theme-transitioning body,
+  .theme-transitioning header,
+  .theme-transitioning aside,
+  .theme-transitioning main,
+  .theme-transitioning section,
+  .theme-transitioning nav,
+  .theme-transitioning table,
+  .theme-transitioning tr,
+  .theme-transitioning th,
+  .theme-transitioning td,
+  .theme-transitioning .card,
+  .theme-transitioning .glass,
+  .theme-transitioning button,
+  .theme-transitioning input,
+  .theme-transitioning select,
+  .theme-transitioning textarea,
+  .theme-transitioning h1,
+  .theme-transitioning h2,
+  .theme-transitioning h3,
+  .theme-transitioning h4,
+  .theme-transitioning h5,
+  .theme-transitioning h6,
+  .theme-transitioning p,
+  .theme-transitioning span,
+  .theme-transitioning a,
+  .theme-transitioning label,
+  .theme-transitioning div {
     transition:
-      background-color 350ms ease,
-      border-color     350ms ease,
-      color            350ms ease,
-      fill             350ms ease,
-      stroke           350ms ease,
-      box-shadow       350ms ease !important;
+      background-color 250ms ease,
+      border-color     250ms ease,
+      color            250ms ease,
+      box-shadow       250ms ease !important;
+  }
+
+  /* Exclude SVGs, icons, and Recharts grids/charts from costly animation rendering */
+  .theme-transitioning svg,
+  .theme-transitioning svg *,
+  .theme-transitioning .recharts-wrapper,
+  .theme-transitioning .recharts-wrapper * {
+    transition: none !important;
   }
 
   /* ══════════════════════════════════════════════

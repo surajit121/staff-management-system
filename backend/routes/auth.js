@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Admin } from '../models/Admin.js';
-import { sendEmail } from '../utils/sendEmail.js';
+import { addJob } from '../utils/queue.js';
 import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
@@ -134,13 +134,13 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
     `;
 
     try {
-      await sendEmail({ email: admin.email, subject: 'StaffSync Pro - Password Reset Code', message });
+      await addJob('sendEmail', { email: admin.email, subject: 'StaffSync Pro - Password Reset Code', message });
       res.json({ message: 'A verification code has been sent to your email.' });
     } catch (err) {
       admin.resetCode = undefined;
       admin.resetCodeExpires = undefined;
       await admin.save();
-      return res.status(500).json({ message: 'Email could not be sent' });
+      return res.status(500).json({ message: 'Email could not be queued' });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
