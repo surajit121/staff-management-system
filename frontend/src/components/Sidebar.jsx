@@ -24,7 +24,7 @@ import { useAuth } from '../context/AuthContext';
 
 const navItems = [
   { label: 'Main', isHeader: true },
-  { label: 'Dashboard',     path: '/',          icon: LayoutDashboard },
+  { label: 'Dashboard',     path: '/dashboard',          icon: LayoutDashboard },
   { label: 'Staff Members', path: '/staff',      icon: Users },
   { label: 'Daily Entry', isHeader: true },
   { label: 'Attendance',    path: '/attendance', icon: CalendarCheck },

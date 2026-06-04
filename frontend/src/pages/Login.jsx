@@ -48,7 +48,7 @@ export default function Login() {
       const response = await api.post('/auth/login', { username, password });
       login(response.data.token, response.data.user);
       toast.success('Login successful!');
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Invalid credentials');
     } finally {
@@ -72,7 +72,7 @@ export default function Login() {
       const response = await api.post('/auth/register', { username, email, password });
       login(response.data.token, response.data.user);
       toast.success('Registration successful! Welcome to StaffSync Pro.');
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Registration failed');
     } finally {

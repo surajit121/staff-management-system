@@ -30,6 +30,13 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const PublicRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return null;
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  return children;
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -39,12 +46,21 @@ function App() {
             <Toaster position="top-right" richColors />
             <Router>
               <Routes>
-                <Route path="/login" element={<Login />} />
+                <Route path="/login" element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                } />
+                <Route path="/" element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                } />
                 <Route path="/*" element={
                   <ProtectedRoute>
                     <Layout>
                       <Routes>
-                        <Route path="/"          element={<Dashboard />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/staff"     element={<StaffManagement />} />
                         <Route path="/attendance" element={<Attendance />} />
                         <Route path="/expenses"  element={<Expenses />} />
