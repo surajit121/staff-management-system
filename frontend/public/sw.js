@@ -29,6 +29,11 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Bypass service worker caching in development (localhost) to avoid caching Vite dev-time dependencies/HMR scripts
+  if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
+    return;
+  }
+
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);

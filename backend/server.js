@@ -249,6 +249,18 @@ app.post('/api/materials/bulk', authMiddleware, async (req, res) => {
   }
 });
 
+// Bulk route for Billing (multi-item bills)
+app.post('/api/billing/bulk', authMiddleware, async (req, res) => {
+  try {
+    const billingData = req.body; // Array of billing objects
+    const savedBills = await Billing.insertMany(billingData);
+    await clearCache('billing');
+    res.status(201).json(savedBills);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 // Special route for single staff creation with auto-attendance
 app.post('/api/staff', authMiddleware, async (req, res) => {
   try {

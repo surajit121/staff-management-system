@@ -3,7 +3,8 @@ import mongoose from 'mongoose';
 const stockTransferSchema = new mongoose.Schema({
   items: [{
     name: { type: String, required: true },
-    qty: { type: Number, required: true }
+    qty: { type: Number, required: true },
+    quality: { type: String, default: '' }
   }],
   from: { type: String, required: true },
   to: { type: String, required: true },

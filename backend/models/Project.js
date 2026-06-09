@@ -12,7 +12,8 @@ const projectSchema = new mongoose.Schema({
     date: { type: Date },
     quantity: { type: Number, default: 0 },
     rate: { type: Number, default: 0 },
-    amount: { type: Number, default: 0 }
+    amount: { type: Number, default: 0 },
+    quality: { type: String, default: '' }
   }],
   status: { type: String, enum: ['Active', 'On Hold', 'Completed', 'Cancelled'], default: 'Active' },
   stock: { type: Number, default: 0 },

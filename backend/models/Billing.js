@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const billingSchema = new mongoose.Schema({
   project: { type: String, required: true }, // Referencing Project.code
   item: { type: String, required: true },
+  quality: { type: String, default: '' },
   vendor: { type: String, required: true },
   qty: { type: Number, default: 0 },
   rate: { type: Number, default: 0 },

@@ -344,10 +344,6 @@ export default function Expenses() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-  const [pendingFile, setPendingFile] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [savedAttachment, setSavedAttachment] = useState(null);
-  const fileInputRef = useRef(null);
 
   const filteredExpenses = expenses.filter(e => {
     const q = searchQuery.toLowerCase();
@@ -424,9 +420,7 @@ export default function Expenses() {
     try {
       const payload = {
         ...values,
-        attachments: savedAttachment
-          ? [...(editingRecord?.attachments || []), savedAttachment]
-          : editingRecord?.attachments || []
+        attachments: editingRecord?.attachments || []
       };
       if (editingRecord) {
         await update({ id: editingRecord._id, data: payload });
@@ -443,8 +437,6 @@ export default function Expenses() {
 
   const handleEdit = (record) => {
     setEditingRecord(record);
-    setSavedAttachment(null);
-    setPendingFile(null);
 
     // Normalize staffId: support both legacy single-object and new array
     const members = Array.isArray(record.staffId)
@@ -480,41 +472,10 @@ export default function Expenses() {
   const handleClose = () => {
     setIsModalOpen(false);
     setEditingRecord(null);
-    setPendingFile(null);
-    setSavedAttachment(null);
     form.reset();
   };
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const previewUrl = URL.createObjectURL(file);
-    setPendingFile({ file, previewUrl });
-  };
 
-  const handleUpload = async () => {
-    if (!pendingFile) return;
-    try {
-      setIsUploading(true);
-      const result = await uploadService.upload(pendingFile.file);
-      setSavedAttachment(result);
-      setPendingFile(null);
-      toast.success('Receipt uploaded!');
-    } catch (err) {
-      toast.error('Upload failed. Try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleRemoveAttachment = async () => {
-    if (savedAttachment) {
-      try { await uploadService.delete(savedAttachment.filename); } catch {}
-    }
-    setSavedAttachment(null);
-    setPendingFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
 
   const totalAmount = filteredExpenses.reduce((acc, curr) => acc + curr.amount, 0);
   const pendingAmount = filteredExpenses.filter(e => e.status === 'Pending').reduce((acc, curr) => acc + curr.amount, 0);
@@ -684,7 +645,7 @@ export default function Expenses() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0 flex flex-col max-h-[90vh]">
+        <DialogContent className="sm:max-w-[800px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0 flex flex-col max-h-[90vh]">
           <div className="p-4 px-5 border-b border-border/60 bg-surface2/25 flex-shrink-0">
             <DialogHeader className="space-y-0.5">
               <DialogTitle className="text-lg font-bold tracking-tight text-text">{editingRecord ? 'Edit Expense' : 'Log Expense'}</DialogTitle>
@@ -808,79 +769,18 @@ export default function Expenses() {
                     <FormMessage />
                   </FormItem>
                 )} />
-
-                {/* ── Attachment ── */}
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-text2 mb-1.5">Attach Receipt / Invoice</p>
-                  
-                  {editingRecord?.attachments?.length > 0 && !savedAttachment && (
-                    <div className="mb-2 flex flex-wrap gap-1.5">
-                      {editingRecord.attachments.map((att, i) => (
-                        <a key={i} href={att.url} target="_blank" rel="noreferrer"
-                          className="flex items-center gap-1 px-2 py-1 bg-accent/10 text-accent text-[10px] rounded hover:bg-accent/20 transition-colors"
-                        >
-                          <Paperclip size={10} /> {att.originalName}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-
-                  {savedAttachment ? (
-                    <div className="flex items-center gap-2 p-2 bg-green/10 border border-green/20 rounded-lg">
-                      <div className="p-1 bg-green/20 rounded text-green"><Paperclip size={14} /></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[11px] font-medium text-text truncate">{savedAttachment.originalName}</div>
-                        <div className="text-[10px] text-green">Uploaded ✓</div>
-                      </div>
-                      <button type="button" onClick={handleRemoveAttachment} className="p-1 text-red hover:bg-red-light rounded">
-                        <X size={13} />
-                      </button>
-                    </div>
-                  ) : pendingFile ? (
-                    <div className="flex items-center gap-2 p-2 bg-surface2 border border-border rounded-lg">
-                      <div className="p-1 bg-accent/20 rounded text-accent">
-                        {pendingFile.file.type.startsWith('image') ? <Image size={14} /> : <FileText size={14} />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[11px] font-medium text-text truncate">{pendingFile.file.name}</div>
-                        <div className="text-[10px] text-text3">{(pendingFile.file.size / 1024).toFixed(0)} KB</div>
-                      </div>
-                      <Button type="button" size="sm" className="h-7 text-[11px] bg-accent text-white" onClick={handleUpload} disabled={isUploading}>
-                        {isUploading ? <Loader2 size={12} className="animate-spin" /> : 'Upload'}
-                      </Button>
-                      <button type="button" onClick={() => setPendingFile(null)} className="p-1 text-red hover:bg-red-light rounded">
-                        <X size={13} />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full flex items-center justify-center gap-2 p-2.5 border border-dashed border-border/80 rounded-xl text-text3 hover:border-accent hover:text-accent transition-colors text-[11px] font-medium bg-surface"
-                    >
-                      <Paperclip size={14} /> Click to attach receipt or invoice
-                    </button>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                </div>
               </div>
 
-              <DialogFooter className="p-4 border-t border-border/60 gap-2 sm:gap-0 flex-shrink-0">
-                <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isCreating || isUpdating || isUploading} className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs">
-                  {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                  {editingRecord ? 'Save Changes' : 'Submit Expense'}
-                </Button>
-              </DialogFooter>
-            </form>
+               <DialogFooter className="p-4 border-t border-border/60 gap-2 sm:gap-0 flex-shrink-0">
+                 <Button variant="outline" type="button" onClick={handleClose} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
+                   Cancel
+                 </Button>
+                 <Button type="submit" disabled={isCreating || isUpdating} className="h-9 px-4 bg-accent hover:bg-accent/90 text-white font-semibold transition-all duration-200 text-xs">
+                   {(isCreating || isUpdating) && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                   {editingRecord ? 'Save Changes' : 'Submit Expense'}
+                 </Button>
+               </DialogFooter>
+             </form>
           </Form>
         </DialogContent>
       </Dialog>

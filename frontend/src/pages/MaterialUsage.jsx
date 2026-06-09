@@ -81,6 +81,7 @@ const materialSchema = z.object({
     used: z.coerce.number().min(0, "Used quantity required"),
     wasted: z.coerce.number().min(0, "Wasted quantity required"),
     returned: z.coerce.number().min(0, "Returned quantity required"),
+    quality: z.string().optional().default(''),
     isCustom: z.boolean().optional(),
   })).min(1, "At least one item is required"),
   date: z.string().min(1, "Date is required"),
@@ -130,7 +131,7 @@ export default function MaterialUsage() {
     resolver: zodResolver(materialSchema),
     defaultValues: {
       project: '',
-      items: [{ item: '', used: 0, wasted: 0, returned: 0, isCustom: false }],
+      items: [{ item: '', used: 0, wasted: 0, returned: 0, quality: '', isCustom: false }],
       date: dateFilter,
       loggedBy: 'Site Manager',
     },
@@ -164,6 +165,7 @@ export default function MaterialUsage() {
           used: values.items[0].used,
           wasted: values.items[0].wasted,
           returned: values.items[0].returned,
+          quality: values.items[0].quality,
         };
         await update({ id: editingRecord._id, data: updatedData });
         toast.success("Usage record updated");
@@ -176,6 +178,7 @@ export default function MaterialUsage() {
           used: i.used,
           wasted: i.wasted,
           returned: i.returned,
+          quality: i.quality,
         }));
         await bulkCreate(bulkData);
         toast.success("Usage logged successfully");
@@ -196,6 +199,7 @@ export default function MaterialUsage() {
         used: record.used,
         wasted: record.wasted,
         returned: record.returned,
+        quality: record.quality || '',
         isCustom: isCustom
       }],
       date: record.date,
@@ -220,7 +224,7 @@ export default function MaterialUsage() {
     setEditingRecord(null);
     form.reset({
       project: '',
-      items: [{ item: '', used: 0, wasted: 0, returned: 0, isCustom: false }],
+      items: [{ item: '', used: 0, wasted: 0, returned: 0, quality: '', isCustom: false }],
       date: dateFilter,
       loggedBy: 'Site Manager',
     });
@@ -273,7 +277,9 @@ export default function MaterialUsage() {
                     className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
                   >
                     <td className="px-6 py-4">
-                      <div className="text-[14px] font-bold text-text mb-0.5">{u.item}</div>
+                      <div className="text-[14px] font-bold text-text mb-0.5">
+                        {u.item} {u.quality && <span className="text-[11px] font-normal text-text2 ml-1.5">({u.quality})</span>}
+                      </div>
                       <div className="text-[11px] font-bold text-accent uppercase tracking-widest">{u.project}</div>
                     </td>
                     <td className="px-6 py-4">
@@ -312,7 +318,7 @@ export default function MaterialUsage() {
       </div>
 
        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+        <DialogContent className="sm:max-w-[800px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
           <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
             <DialogHeader className="space-y-0.5">
               <DialogTitle className="text-lg font-bold tracking-tight text-text">
@@ -361,8 +367,8 @@ export default function MaterialUsage() {
                       className="p-3 border border-border/60 rounded-xl bg-surface2/10 transition-all duration-200 hover:border-accent/40"
                     >
                       <div className="grid grid-cols-12 gap-2.5 items-end">
-                        {/* Item Name (5 or 6 cols) */}
-                        <div className={cn("space-y-1.5", fields.length > 1 && !editingRecord ? "col-span-5" : "col-span-6")}>
+                        {/* Item Name (11 or 12 cols) */}
+                        <div className={cn("space-y-1.5", fields.length > 1 && !editingRecord ? "col-span-11" : "col-span-12")}>
                           <FormField control={form.control} name={`items.${index}.item`} render={({ field: itemField }) => (
                             <FormItem className="space-y-1">
                               <div className="flex justify-between items-center">
@@ -428,12 +434,44 @@ export default function MaterialUsage() {
                           )} />
                         </div>
 
+                        {/* Delete Button */}
+                        {fields.length > 1 && !editingRecord && (
+                          <div className="col-span-1 flex justify-center pb-0.5">
+                            <button 
+                              type="button" 
+                              onClick={() => removeField(index)} 
+                              className="p-2 rounded-lg border border-border/60 hover:border-red/40 text-text2 hover:text-red hover:bg-red/10 transition-all duration-200"
+                              title="Delete Item"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-12 gap-2.5 mt-2 items-end">
+                        {/* Quality Field */}
+                        <div className="col-span-4 space-y-1">
+                          <FormField control={form.control} name={`items.${index}.quality`} render={({ field: qualityField }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Quality / Grade</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="e.g. Premium, Fe500, M20" 
+                                  {...qualityField} 
+                                  className="bg-surface border-border/60 h-9 px-2 text-xs focus-visible:ring-accent" 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )} />
+                        </div>
+
                         {/* Quantities (Used, Wasted, Returned) */}
-                        <div className="col-span-2 space-y-1">
+                        <div className="col-span-3 space-y-1">
                           <FormField control={form.control} name={`items.${index}.used`} render={({ field: usedField }) => (
                             <FormItem className="space-y-1">
                               <FormLabel className="text-[9px] font-bold uppercase tracking-wider text-text2 flex items-center gap-1">
-                                <span className="w-1 h-1 rounded-full bg-blue" /> Used
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue" /> Used
                               </FormLabel>
                               <FormControl>
                                 <Input 
@@ -446,11 +484,11 @@ export default function MaterialUsage() {
                           )} />
                         </div>
 
-                        <div className="col-span-2 space-y-1">
+                        <div className="col-span-3 space-y-1">
                           <FormField control={form.control} name={`items.${index}.wasted`} render={({ field: wastedField }) => (
                             <FormItem className="space-y-1">
                               <FormLabel className="text-[9px] font-bold uppercase tracking-wider text-text2 flex items-center gap-1">
-                                <span className="w-1 h-1 rounded-full bg-red" /> Wasted
+                                <span className="w-1.5 h-1.5 rounded-full bg-red" /> Wasted
                               </FormLabel>
                               <FormControl>
                                 <Input 
@@ -467,7 +505,7 @@ export default function MaterialUsage() {
                           <FormField control={form.control} name={`items.${index}.returned`} render={({ field: returnedField }) => (
                             <FormItem className="space-y-1">
                               <FormLabel className="text-[9px] font-bold uppercase tracking-wider text-text2 flex items-center gap-1">
-                                <span className="w-1 h-1 rounded-full bg-green" /> Returned
+                                <span className="w-1.5 h-1.5 rounded-full bg-green" /> Returned
                               </FormLabel>
                               <FormControl>
                                 <Input 
@@ -479,20 +517,6 @@ export default function MaterialUsage() {
                             </FormItem>
                           )} />
                         </div>
-
-                        {/* Delete Button */}
-                        {fields.length > 1 && !editingRecord && (
-                          <div className="col-span-1 flex justify-center pb-0.5">
-                            <button 
-                              type="button" 
-                              onClick={() => removeField(index)} 
-                              className="p-2 rounded-lg border border-border/60 hover:border-red/40 text-text2 hover:text-red hover:bg-red/10 transition-all duration-200"
-                              title="Delete Item"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        )}
                       </div>
                     </div>
                   );

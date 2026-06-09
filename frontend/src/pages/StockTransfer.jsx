@@ -41,7 +41,8 @@ import { Button } from "../components/ui/button";
 const stockSchema = z.object({
   items: z.array(z.object({
     name: z.string().min(2, "Item name required"),
-    qty: z.coerce.number().min(1, "Qty required")
+    qty: z.coerce.number().min(1, "Qty required"),
+    quality: z.string().optional().default('')
   })).min(1, "At least one item required"),
   from: z.string().min(2, "Source is required"),
   to: z.string().min(2, "Destination is required"),
@@ -71,7 +72,7 @@ export default function StockTransfer() {
   useEffect(() => {
     const unregisterAdd = registerAddAction(() => {
       form.reset({
-        items: [{ name: '', qty: 0 }],
+        items: [{ name: '', qty: 0, quality: '' }],
         from: 'Main Warehouse',
         to: '',
         project: '',
@@ -83,7 +84,7 @@ export default function StockTransfer() {
     });
     const unregisterDownload = registerDownloadAction(() => {
       const exportData = filteredTransfers.map(t => ({
-        Items: (t.items || []).map(i => `${i.name} (x${i.qty})`).join(', '),
+        Items: (t.items || []).map(i => `${i.name}${i.quality ? ` (${i.quality})` : ''} (x${i.qty})`).join(', '),
         From: t.from,
         To: t.to,
         Project: t.project,
@@ -101,7 +102,7 @@ export default function StockTransfer() {
   const form = useForm({
     resolver: zodResolver(stockSchema),
     defaultValues: {
-      items: [{ name: '', qty: 0 }],
+      items: [{ name: '', qty: 0, quality: '' }],
       from: 'Main Warehouse',
       to: '',
       project: '',
@@ -145,7 +146,7 @@ export default function StockTransfer() {
   const handleEdit = (record) => {
     setEditingRecord(record);
     form.reset({
-      items: record.items || [{ name: '', qty: 0 }],
+      items: (record.items || []).map(i => ({ name: i.name || '', qty: i.qty || 0, quality: i.quality || '' })),
       from: record.from,
       to: record.to,
       project: record.project,
@@ -221,7 +222,7 @@ export default function StockTransfer() {
                         {(t.items || []).length > 1 ? `${(t.items || []).length} Items` : t.items?.[0]?.name || 'No Items'}
                       </div>
                       <div className="text-[10px] text-text3 truncate max-w-[150px]">
-                        {(t.items || []).map(i => i.name).join(', ')}
+                        {(t.items || []).map(i => `${i.name}${i.quality ? ` (${i.quality})` : ''}`).join(', ')}
                       </div>
                       <div className="text-[11px] font-bold text-accent uppercase tracking-widest mt-1">{t.project}</div>
                     </td>
@@ -267,7 +268,7 @@ export default function StockTransfer() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[620px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+        <DialogContent className="sm:max-w-[800px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
           <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
             <DialogHeader className="space-y-0.5">
               <DialogTitle className="text-lg font-bold tracking-tight text-text">
@@ -288,41 +289,56 @@ export default function StockTransfer() {
                     key={field.id} 
                     className="p-3 border border-border/60 rounded-xl bg-surface2/10 transition-all duration-200 hover:border-accent/40"
                   >
-                    <div className="grid grid-cols-12 gap-2.5 items-end">
-                      <FormField control={form.control} name={`items.${index}.name`} render={({ field: inputField }) => (
-                        <FormItem className={cn("space-y-1", fields.length > 1 && !editingRecord ? "col-span-8" : "col-span-9")}>
-                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Item Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Fire Extinguisher, Dome Camera..." list="item-suggestions" {...inputField} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
-                          </FormControl>
-                          <FormMessage className="text-[10px] mt-0.5" />
-                        </FormItem>
-                      )} />
-                      
-                      <FormField control={form.control} name={`items.${index}.qty`} render={({ field: inputField }) => (
-                        <FormItem className="col-span-3 space-y-1">
-                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Qty</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...inputField} className="bg-surface border-border/60 h-9 px-2 text-center text-xs focus-visible:ring-accent" />
-                          </FormControl>
-                          <FormMessage className="text-[10px] mt-0.5" />
-                        </FormItem>
-                      )} />
+                      <div className="grid grid-cols-12 gap-2.5 items-end">
+                        <FormField control={form.control} name={`items.${index}.name`} render={({ field: inputField }) => (
+                          <FormItem className={cn("space-y-1", fields.length > 1 && !editingRecord ? "col-span-11" : "col-span-12")}>
+                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Item Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Fire Extinguisher, Dome Camera..." list="item-suggestions" {...inputField} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                            </FormControl>
+                            <FormMessage className="text-[10px] mt-0.5" />
+                          </FormItem>
+                        )} />
+                        
+                        {index > 0 && !editingRecord && (
+                          <div className="col-span-1 flex justify-center pb-0.5">
+                            <button
+                              type="button"
+                              onClick={() => removeField(index)}
+                              className="p-2 rounded-lg border border-border/60 hover:border-red/40 text-text2 hover:text-red hover:bg-red/10 transition-all duration-200"
+                              title="Delete Item"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
-                      {index > 0 && !editingRecord && (
-                        <div className="col-span-1 flex justify-center pb-0.5">
-                          <button
-                            type="button"
-                            onClick={() => removeField(index)}
-                            className="p-2 rounded-lg border border-border/60 hover:border-red/40 text-text2 hover:text-red hover:bg-red/10 transition-all duration-200"
-                            title="Delete Item"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                      <div className="grid grid-cols-12 gap-2.5 mt-2 items-end">
+                        <div className="col-span-7">
+                          <FormField control={form.control} name={`items.${index}.quality`} render={({ field: inputField }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Quality / Grade</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. Premium, Fe500, M20" {...inputField} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                              </FormControl>
+                            </FormItem>
+                          )} />
                         </div>
-                      )}
+                        
+                        <div className="col-span-5">
+                          <FormField control={form.control} name={`items.${index}.qty`} render={({ field: inputField }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Qty</FormLabel>
+                              <FormControl>
+                                <Input type="number" {...inputField} className="bg-surface border-border/60 h-9 px-2 text-center text-xs focus-visible:ring-accent" />
+                              </FormControl>
+                              <FormMessage className="text-[10px] mt-0.5" />
+                            </FormItem>
+                          )} />
+                        </div>
+                      </div>
                     </div>
-                  </div>
                 ))}
               </div>
 
@@ -331,7 +347,7 @@ export default function StockTransfer() {
                   type="button"
                   variant="outline"
                   className="w-full border-dashed border-border/80 hover:border-accent hover:text-accent hover:bg-accent-light/10 h-9 transition-all duration-200 text-xs"
-                  onClick={() => append({ name: '', qty: 0 })}
+                  onClick={() => append({ name: '', qty: 0, quality: '' })}
                 >
                   <Plus size={14} className="mr-1.5" /> Add More Items
                 </Button>

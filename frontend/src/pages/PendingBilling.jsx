@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBilling, useProjects } from '../hooks/useResource';
 import { cn, formatDate } from '../lib/utils';
 import { Skeleton } from '../components/ui/skeleton';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
@@ -40,11 +40,7 @@ import { Button } from "../components/ui/button";
 
 const billingSchema = z.object({
   project: z.string().min(1, "Project reference required"),
-  item: z.string().min(2, "Item name is required"),
   vendor: z.string().min(2, "Vendor name is required"),
-  qty: z.coerce.number().min(0).optional().default(0),
-  rate: z.coerce.number().min(0).optional().default(0),
-  amount: z.coerce.number().min(0.01, "Valid total amount is required"),
   deliveredDate: z.string().min(1, "Date is required"),
   status: z.enum(['Pending', 'Billed', 'Cancelled']).default('Pending'),
   attachments: z.array(z.object({
@@ -54,17 +50,22 @@ const billingSchema = z.object({
     mimetype: z.string(),
     uploadedAt: z.string().optional(),
   })).optional().default([]),
+  items: z.array(z.object({
+    item: z.string().min(2, "Item name is required"),
+    quality: z.string().optional().default(''),
+    qty: z.coerce.number().min(0).optional().default(0),
+    rate: z.coerce.number().min(0).optional().default(0),
+    amount: z.coerce.number().min(0.01, "Valid total amount is required"),
+  })).min(1, "At least one item is required"),
 });
 
 export default function PendingBilling() {
-  const { data: bills, isLoading, create, update, remove, isCreating, isUpdating } = useBilling();
+  const { data: bills, isLoading, create, update, remove, isCreating, isUpdating, bulkCreate } = useBilling();
   const { data: projects } = useProjects();
   const { registerAddAction, registerDownloadAction, searchQuery } = useAction();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = React.useRef(null);
 
   const filteredBills = (bills || []).filter(b => {
     if (!searchQuery) return true;
@@ -102,70 +103,70 @@ export default function PendingBilling() {
     resolver: zodResolver(billingSchema),
     defaultValues: {
       project: '',
-      item: '',
       vendor: '',
-      qty: 0,
-      rate: 0,
-      amount: 0,
       deliveredDate: new Date().toISOString().split('T')[0],
       status: 'Pending',
       attachments: [],
+      items: [{ item: '', quality: '', qty: 0, rate: 0, amount: 0 }],
     },
+  });
+
+  const { fields, append, remove: removeField } = useFieldArray({
+    control: form.control,
+    name: "items"
   });
 
   // Track selected project for the info card (must be after useForm)
   const watchedProject = form.watch('project');
   const selectedProjectData = (projects || []).find(p => p.code === watchedProject) || null;
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    setIsUploading(true);
-    try {
-      const response = await fetch('http://localhost:5000/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!response.ok) throw new Error('Upload failed');
-      const data = await response.json();
-      
-      const currentAttachments = form.getValues('attachments') || [];
-      form.setValue('attachments', [...currentAttachments, data]);
-      toast.success("File attached successfully");
-    } catch (error) {
-      toast.error("Failed to upload file");
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const removeAttachment = (filename) => {
-    const currentAttachments = form.getValues('attachments') || [];
-    form.setValue('attachments', currentAttachments.filter(a => a.filename !== filename));
-  };
-
-  // Auto-calculate amount when qty or rate are set
-  const qty = form.watch('qty');
-  const rate = form.watch('rate');
+  // Auto-calculate amount when qty or rate are set in the items array
+  const watchedItems = form.watch('items');
   useEffect(() => {
-    if (qty > 0 && rate > 0) {
-      form.setValue('amount', qty * rate);
-    }
-  }, [qty, rate, form]);
+    if (!watchedItems) return;
+    watchedItems.forEach((item, index) => {
+      const q = Number(item?.qty) || 0;
+      const r = Number(item?.rate) || 0;
+      const expectedAmount = q * r;
+      if (item?.amount !== expectedAmount) {
+        form.setValue(`items.${index}.amount`, expectedAmount, { shouldValidate: true });
+      }
+    });
+  }, [watchedItems, form]);
 
   const onSubmit = async (values) => {
     try {
       if (editingRecord) {
-        await update({ id: editingRecord._id, data: values });
+        const singleItem = values.items[0] || {};
+        const payload = {
+          project: values.project,
+          vendor: values.vendor,
+          deliveredDate: values.deliveredDate,
+          status: values.status,
+          attachments: values.attachments,
+          item: singleItem.item,
+          quality: singleItem.quality || '',
+          qty: singleItem.qty || 0,
+          rate: singleItem.rate || 0,
+          amount: singleItem.amount || 0,
+        };
+        await update({ id: editingRecord._id, data: payload });
         toast.success("Billing record updated");
       } else {
-        await create(values);
-        toast.success("Billing item logged");
+        const payloads = values.items.map(item => ({
+          project: values.project,
+          vendor: values.vendor,
+          deliveredDate: values.deliveredDate,
+          status: values.status,
+          attachments: values.attachments,
+          item: item.item,
+          quality: item.quality || '',
+          qty: item.qty || 0,
+          rate: item.rate || 0,
+          amount: item.amount || 0,
+        }));
+        await bulkCreate(payloads);
+        toast.success("Billing items logged");
       }
       handleClose();
     } catch (error) {
@@ -177,14 +178,17 @@ export default function PendingBilling() {
     setEditingRecord(record);
     form.reset({
       project: record.project,
-      item: record.item,
       vendor: record.vendor,
-      qty: record.qty,
-      rate: record.rate,
-      amount: record.amount,
       deliveredDate: record.deliveredDate,
       status: record.status,
       attachments: record.attachments || [],
+      items: [{
+        item: record.item,
+        quality: record.quality || '',
+        qty: record.qty,
+        rate: record.rate,
+        amount: record.amount,
+      }],
     });
     setIsModalOpen(true);
   };
@@ -252,7 +256,9 @@ export default function PendingBilling() {
                     className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
                   >
                     <td className="px-6 py-4">
-                      <div className="text-[14px] font-bold text-text mb-0.5">{b.item}</div>
+                      <div className="text-[14px] font-bold text-text mb-0.5">
+                        {b.item} {b.quality && <span className="text-[11px] font-normal text-text2 ml-1.5">({b.quality})</span>}
+                      </div>
                       <div className="text-[11px] font-bold text-text3 uppercase tracking-widest">Supplier: {b.vendor}</div>
                     </td>
                     <td className="px-6 py-4">
@@ -302,7 +308,7 @@ export default function PendingBilling() {
       </div>
 
        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[680px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0 flex flex-col max-h-[90vh]">
+        <DialogContent className="sm:max-w-[800px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0 flex flex-col max-h-[90vh]">
           <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
             <DialogHeader className="space-y-0.5">
               <DialogTitle className="text-lg font-bold tracking-tight text-text">
@@ -333,11 +339,11 @@ export default function PendingBilling() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="item" render={({ field }) => (
+                <FormField control={form.control} name="vendor" render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Item Name</FormLabel>
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Vendor / Supplier</FormLabel>
                     <FormControl>
-                      <Input placeholder="Concrete / Steel" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                      <Input placeholder="A1 Steel Co." {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -428,41 +434,7 @@ export default function PendingBilling() {
                   </motion.div>
                 )}
               </AnimatePresence>
-              <FormField control={form.control} name="vendor" render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Vendor / Supplier</FormLabel>
-                  <FormControl>
-                    <Input placeholder="A1 Steel Co." {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
-                  </FormControl>
-                </FormItem>
-              )} />
-              <div className="grid grid-cols-3 gap-3">
-                <FormField control={form.control} name="qty" render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Qty</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
-                    </FormControl>
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="rate" render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Rate</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
-                    </FormControl>
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="amount" render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Total</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="deliveredDate" render={({ field }) => (
                   <FormItem className="space-y-1">
@@ -470,6 +442,7 @@ export default function PendingBilling() {
                     <FormControl>
                       <Input type="date" {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="status" render={({ field }) => (
@@ -485,55 +458,129 @@ export default function PendingBilling() {
                         {['Pending', 'Billed', 'Cancelled'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
                   </FormItem>
                 )} />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-text2 flex items-center justify-between">
-                  Attachments
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 px-2 text-[9px] text-accent hover:bg-accent-light/10"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                  >
-                    {isUploading ? <Loader2 size={10} className="animate-spin mr-1" /> : <FilePlus size={10} className="mr-1" />}
-                    Add File
-                  </Button>
-                </label>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  onChange={handleFileUpload}
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
-                />
-                
-                <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
-                  {(form.watch('attachments') || []).map((file) => (
-                    <div key={file.filename} className="flex items-center justify-between p-2 rounded-lg bg-surface2 border border-border group">
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        <Paperclip size={14} className="text-text3 shrink-0" />
-                        <span className="text-[11px] font-medium truncate text-text2">{file.originalName}</span>
+              {/* Items Section */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between border-b border-border/60 pb-1">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-text2">Items List</h3>
+                  {!editingRecord && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => append({ item: '', quality: '', qty: 0, rate: 0, amount: 0 })}
+                      className="h-7 px-2.5 text-[11px] font-bold text-accent hover:text-accent hover:bg-accent/10 flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus size={12} /> Add Item
+                    </Button>
+                  )}
+                </div>
+
+                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="grid grid-cols-12 gap-2.5 items-end group border-b border-border/40 pb-3 last:border-0 last:pb-0">
+                      
+                      <div className="col-span-4">
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.item`}
+                          render={({ field }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Item Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Concrete / Steel" {...field} className="bg-surface border-border/60 h-9 px-2.5 text-xs focus-visible:ring-accent" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <a href={file.url} target="_blank" rel="noreferrer" className="p-1 hover:text-accent">
-                          <Eye size={12} />
-                        </a>
-                        <button type="button" onClick={() => removeAttachment(file.filename)} className="p-1 hover:text-red">
-                          <X size={12} />
-                        </button>
+
+                      <div className="col-span-3" >
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.quality`}
+                          render={({ field }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Quality / Grade</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. Premium" {...field} className="bg-surface border-border/60 h-9 px-2.5 text-xs focus-visible:ring-accent" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
+
+                      <div className="col-span-1">
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.qty`}
+                          render={({ field }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Qty</FormLabel>
+                              <FormControl>
+                                <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-1.5 text-xs text-center focus-visible:ring-accent" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="col-span-2">
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.rate`}
+                          render={({ field }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Rate</FormLabel>
+                              <FormControl>
+                                <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-2 text-xs focus-visible:ring-accent" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="col-span-1">
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.amount`}
+                          render={({ field }) => (
+                            <FormItem className="space-y-1">
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Total (₹)</FormLabel>
+                              <FormControl>
+                                <Input type="number" disabled {...field} className="bg-surface border-border/60 h-9 px-2 text-xs cursor-not-allowed opacity-80" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="col-span-1 pb-0.5 flex justify-center">
+                        {!editingRecord && fields.length > 1 ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => removeField(index)}
+                            className="h-9 w-9 p-0 text-text3 hover:text-red hover:bg-red-light shrink-0 cursor-pointer rounded-lg border border-border/60 hover:border-red/40"
+                            title="Remove Item"
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        ) : (
+                          <div className="h-9 w-9" />
+                        )}
+                      </div>
+
                     </div>
                   ))}
-                  {(!form.watch('attachments') || form.watch('attachments').length === 0) && (
-                    <div className="text-center py-3 border border-dashed border-border/80 rounded-lg text-text3 text-[10px]">
-                      No documents attached
-                    </div>
-                  )}
                 </div>
               </div>
               </div>
