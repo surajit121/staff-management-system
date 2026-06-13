@@ -525,12 +525,23 @@ export default function Projects() {
                 </div>
                 
                 <div className="space-y-3 max-h-[30vh] overflow-y-auto pr-1.5 custom-scrollbar">
+                  {/* Desktop Headers (Hidden on Mobile) */}
+                  <div className="hidden md:grid grid-cols-[4fr_2.5fr_2.5fr_1.2fr_1.8fr_2fr_0.8fr] gap-2 px-1 pb-1 border-b border-border/50 text-[9px] font-bold uppercase tracking-wider text-text3">
+                    <div>Item Name</div>
+                    <div>Quality / Grade</div>
+                    <div>Date</div>
+                    <div className="text-center">Qty</div>
+                    <div className="text-center">Rate (₹)</div>
+                    <div className="text-center">Amount (₹)</div>
+                    <div></div>
+                  </div>
+
                   {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-2 items-end group relative border-b border-border/50 pb-3 last:border-0 last:pb-0">
-                      <div className="col-span-12 md:col-span-4">
+                    <div key={field.id} className="grid grid-cols-12 md:grid-cols-[4fr_2.5fr_2.5fr_1.2fr_1.8fr_2fr_0.8fr] gap-2 items-end md:items-center group relative border-b border-border/50 pb-3 last:border-0 last:pb-0 md:border-0 md:pb-0">
+                      <div className="col-span-12 md:col-span-1">
                         <FormField control={form.control} name={`expensiveDetails.${index}.item`} render={({ field }) => (
                           <FormItem className="space-y-1">
-                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Item Name</FormLabel>
+                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2 md:hidden">Item Name</FormLabel>
                             <FormControl>
                               <Input
                                 list="expensive-items"
@@ -547,18 +558,18 @@ export default function Projects() {
                           </FormItem>
                         )} />
                       </div>
-                      <div className="col-span-12 md:col-span-3">
+                      <div className="col-span-12 md:col-span-1">
                         <FormField control={form.control} name={`expensiveDetails.${index}.quality`} render={({ field }) => (
                           <FormItem className="space-y-1">
-                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Quality / Grade</FormLabel>
+                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2 md:hidden">Quality / Grade</FormLabel>
                             <FormControl><Input placeholder="Grade / Brand" {...field} className="bg-surface border-border/60 h-9 text-[11px]" /></FormControl>
                           </FormItem>
                         )} />
                       </div>
-                      <div className="col-span-12 md:col-span-2">
+                      <div className="col-span-12 md:col-span-1">
                         <FormField control={form.control} name={`expensiveDetails.${index}.date`} render={({ field }) => (
                           <FormItem className="space-y-1">
-                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Date</FormLabel>
+                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2 md:hidden">Date</FormLabel>
                             <FormControl><Input type="date" {...field} className="bg-surface border-border/60 h-9 text-[11px]" /></FormControl>
                           </FormItem>
                         )} />
@@ -566,32 +577,34 @@ export default function Projects() {
                       <div className="col-span-4 md:col-span-1">
                         <FormField control={form.control} name={`expensiveDetails.${index}.quantity`} render={({ field }) => (
                           <FormItem className="space-y-1">
-                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Qty</FormLabel>
-                            <FormControl><Input type="number" {...field} className="bg-surface border-border/60 h-9 text-[11px] text-center" /></FormControl>
+                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2 md:hidden">Qty</FormLabel>
+                            <FormControl><Input type="number" {...field} className="bg-surface border-border/60 h-9 text-[11px] text-center px-1 no-spinner" /></FormControl>
                           </FormItem>
                         )} />
                       </div>
                       <div className="col-span-4 md:col-span-1">
                          <FormField control={form.control} name={`expensiveDetails.${index}.rate`} render={({ field }) => (
                           <FormItem className="space-y-1">
-                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Rate (₹)</FormLabel>
-                            <FormControl><Input type="number" {...field} className="bg-surface border-border/60 h-9 text-[11px] text-center" /></FormControl>
+                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2 md:hidden">Rate (₹)</FormLabel>
+                            <FormControl><Input type="number" {...field} className="bg-surface border-border/60 h-9 text-[11px] text-center px-1 no-spinner" /></FormControl>
                           </FormItem>
                         )} />
                       </div>
                       <div className="col-span-4 md:col-span-1">
                         <FormField control={form.control} name={`expensiveDetails.${index}.amount`} render={({ field }) => (
                           <FormItem className="space-y-1">
-                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2">Amount (₹)</FormLabel>
-                            <FormControl><Input type="number" {...field} readOnly className="bg-surface2 h-9 text-[11px] cursor-not-allowed text-center border-border/60" /></FormControl>
+                            <FormLabel className="text-[9px] font-bold uppercase tracking-tighter text-text2 md:hidden">Amount (₹)</FormLabel>
+                            <FormControl><Input type="number" {...field} readOnly className="bg-surface2 h-9 text-[11px] cursor-not-allowed text-center border-border/60 px-1 no-spinner" /></FormControl>
                           </FormItem>
                         )} />
                       </div>
                       <div className="col-span-12 md:col-span-1 flex justify-end md:justify-center pb-0.5">
-                        {fields.length > 1 && (
+                        {fields.length > 1 ? (
                           <Button type="button" variant="ghost" size="icon" onClick={() => removeField(index)} className="h-8 w-8 text-red hover:bg-red-light rounded-md">
                             <Trash2 size={14} />
                           </Button>
+                        ) : (
+                          <div className="h-8 w-8 md:block hidden" />
                         )}
                       </div>
                     </div>

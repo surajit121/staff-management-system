@@ -480,16 +480,26 @@ export default function PendingBilling() {
                 </div>
 
                 <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+                  {/* Desktop Headers (Hidden on Mobile) */}
+                  <div className="hidden md:grid grid-cols-[4fr_2.5fr_1.2fr_1.8fr_2fr_0.8fr] gap-2.5 px-1 pb-1 border-b border-border/50 text-[9px] font-bold uppercase tracking-wider text-text3">
+                    <div>Item Name</div>
+                    <div>Quality / Grade</div>
+                    <div className="text-center">Qty</div>
+                    <div className="text-center">Rate (₹)</div>
+                    <div className="text-center">Total (₹)</div>
+                    <div></div>
+                  </div>
+
                   {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-2.5 items-end group border-b border-border/40 pb-3 last:border-0 last:pb-0">
+                    <div key={field.id} className="grid grid-cols-12 md:grid-cols-[4fr_2.5fr_1.2fr_1.8fr_2fr_0.8fr] gap-2.5 items-end md:items-center group border-b border-border/40 pb-3 last:border-0 last:pb-0 md:border-0 md:pb-0">
                       
-                      <div className="col-span-4">
+                      <div className="col-span-12 md:col-span-1">
                         <FormField
                           control={form.control}
                           name={`items.${index}.item`}
                           render={({ field }) => (
                             <FormItem className="space-y-1">
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Item Name</FormLabel>
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2 md:hidden">Item Name</FormLabel>
                               <FormControl>
                                 <Input placeholder="Concrete / Steel" {...field} className="bg-surface border-border/60 h-9 px-2.5 text-xs focus-visible:ring-accent" />
                               </FormControl>
@@ -499,13 +509,13 @@ export default function PendingBilling() {
                         />
                       </div>
 
-                      <div className="col-span-3" >
+                      <div className="col-span-12 md:col-span-1" >
                         <FormField
                           control={form.control}
                           name={`items.${index}.quality`}
                           render={({ field }) => (
                             <FormItem className="space-y-1">
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Quality / Grade</FormLabel>
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2 md:hidden">Quality / Grade</FormLabel>
                               <FormControl>
                                 <Input placeholder="e.g. Premium" {...field} className="bg-surface border-border/60 h-9 px-2.5 text-xs focus-visible:ring-accent" />
                               </FormControl>
@@ -515,15 +525,15 @@ export default function PendingBilling() {
                         />
                       </div>
 
-                      <div className="col-span-1">
+                      <div className="col-span-4 md:col-span-1">
                         <FormField
                           control={form.control}
                           name={`items.${index}.qty`}
                           render={({ field }) => (
                             <FormItem className="space-y-1">
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Qty</FormLabel>
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2 md:hidden">Qty</FormLabel>
                               <FormControl>
-                                <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-1.5 text-xs text-center focus-visible:ring-accent" />
+                                <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-1 text-xs text-center focus-visible:ring-accent no-spinner" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -531,15 +541,15 @@ export default function PendingBilling() {
                         />
                       </div>
 
-                      <div className="col-span-2">
+                      <div className="col-span-4 md:col-span-1">
                         <FormField
                           control={form.control}
                           name={`items.${index}.rate`}
                           render={({ field }) => (
                             <FormItem className="space-y-1">
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Rate</FormLabel>
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2 md:hidden">Rate</FormLabel>
                               <FormControl>
-                                <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-2 text-xs focus-visible:ring-accent" />
+                                <Input type="number" {...field} className="bg-surface border-border/60 h-9 px-1 text-xs text-center focus-visible:ring-accent no-spinner" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -547,15 +557,15 @@ export default function PendingBilling() {
                         />
                       </div>
 
-                      <div className="col-span-1">
+                      <div className="col-span-4 md:col-span-1">
                         <FormField
                           control={form.control}
                           name={`items.${index}.amount`}
                           render={({ field }) => (
                             <FormItem className="space-y-1">
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Total (₹)</FormLabel>
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2 md:hidden">Total (₹)</FormLabel>
                               <FormControl>
-                                <Input type="number" disabled {...field} className="bg-surface border-border/60 h-9 px-2 text-xs cursor-not-allowed opacity-80" />
+                                <Input type="number" readOnly {...field} className="bg-surface2 h-9 px-1 text-xs cursor-not-allowed text-center border-border/60 no-spinner opacity-80" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -563,19 +573,19 @@ export default function PendingBilling() {
                         />
                       </div>
 
-                      <div className="col-span-1 pb-0.5 flex justify-center">
+                      <div className="col-span-12 md:col-span-1 pb-0.5 flex justify-end md:justify-center">
                         {!editingRecord && fields.length > 1 ? (
                           <Button
                             type="button"
                             variant="ghost"
                             onClick={() => removeField(index)}
-                            className="h-9 w-9 p-0 text-text3 hover:text-red hover:bg-red-light shrink-0 cursor-pointer rounded-lg border border-border/60 hover:border-red/40"
+                            className="h-9 w-9 p-0 text-red hover:bg-red-light shrink-0 cursor-pointer rounded-lg border border-border/60 hover:border-red/40"
                             title="Remove Item"
                           >
                             <Trash2 size={14} />
                           </Button>
                         ) : (
-                          <div className="h-9 w-9" />
+                          <div className="h-9 w-9 md:block hidden" />
                         )}
                       </div>
 
