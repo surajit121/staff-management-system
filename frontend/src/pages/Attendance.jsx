@@ -77,8 +77,33 @@ export default function Attendance() {
     return matchesSearch;
   });
 
+
+
+  const form = useForm({
+    resolver: zodResolver(attendanceSchema),
+    defaultValues: {
+      staffId: '',
+      date: displayDate,
+      status: 'Present',
+      checkIn: '09:00',
+      checkOut: '18:00',
+      notes: '',
+    },
+  });
+
   useEffect(() => {
-    const unregisterAdd = registerAddAction(() => setIsModalOpen(true));
+    const unregisterAdd = registerAddAction(() => {
+      setEditingRecord(null);
+      form.reset({
+        staffId: '',
+        date: displayDate,
+        status: 'Present',
+        checkIn: '09:00',
+        checkOut: '18:00',
+        notes: '',
+      });
+      setIsModalOpen(true);
+    });
     const unregisterDownload = registerDownloadAction(() => {
       const exportData = mergedAttendance.map(a => ({
         StaffName: a.staffId?.name || 'Unknown',
@@ -94,19 +119,7 @@ export default function Attendance() {
       unregisterAdd();
       unregisterDownload();
     };
-  }, [registerAddAction, registerDownloadAction, mergedAttendance, displayDate]);
-
-  const form = useForm({
-    resolver: zodResolver(attendanceSchema),
-    defaultValues: {
-      staffId: '',
-      date: displayDate,
-      status: 'Present',
-      checkIn: '09:00',
-      checkOut: '18:00',
-      notes: '',
-    },
-  });
+  }, [registerAddAction, registerDownloadAction, mergedAttendance, displayDate, form]);
 
   const onSubmit = async (values) => {
     try {

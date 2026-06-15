@@ -67,8 +67,33 @@ export default function SalaryPayment() {
     );
   });
 
+  const form = useForm({
+    resolver: zodResolver(salarySchema),
+    defaultValues: {
+      staffId: '',
+      month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
+      amount: 0,
+      deductions: 0,
+      paymentDate: dateFilter || new Date().toISOString().split('T')[0],
+      paymentMethod: 'Bank Transfer',
+      status: 'Pending',
+    },
+  });
+
   useEffect(() => {
-    const unregisterAdd = registerAddAction(() => setIsModalOpen(true));
+    const unregisterAdd = registerAddAction(() => {
+      setEditingRecord(null);
+      form.reset({
+        staffId: '',
+        month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
+        amount: 0,
+        deductions: 0,
+        paymentDate: dateFilter || new Date().toISOString().split('T')[0],
+        paymentMethod: 'Bank Transfer',
+        status: 'Pending',
+      });
+      setIsModalOpen(true);
+    });
     const unregisterDownload = registerDownloadAction(() => {
       const exportData = salaries.map(s => ({
         StaffName: s.staffId?.name || 'Unknown',
@@ -86,20 +111,7 @@ export default function SalaryPayment() {
       unregisterAdd();
       unregisterDownload();
     };
-  }, [registerAddAction, registerDownloadAction, salaries, dateFilter]);
-
-  const form = useForm({
-    resolver: zodResolver(salarySchema),
-    defaultValues: {
-      staffId: '',
-      month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
-      amount: 0,
-      deductions: 0,
-      paymentDate: dateFilter || new Date().toISOString().split('T')[0],
-      paymentMethod: 'Bank Transfer',
-      status: 'Pending',
-    },
-  });
+  }, [registerAddAction, registerDownloadAction, salaries, dateFilter, form]);
 
   const onSubmit = async (values) => {
     try {

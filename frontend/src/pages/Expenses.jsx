@@ -377,15 +377,6 @@ export default function Expenses() {
     downloadCSV(exportData, 'Expense_Full_Report');
   }, [expenses]);
 
-  useEffect(() => {
-    const unregisterAdd = registerAddAction(() => setIsModalOpen(true));
-    const unregisterDownload = registerDownloadAction(handleDownloadCSV);
-    return () => {
-      unregisterAdd();
-      unregisterDownload();
-    };
-  }, [registerAddAction, registerDownloadAction, handleDownloadCSV]);
-
   const form = useForm({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
@@ -399,6 +390,28 @@ export default function Expenses() {
       status: 'Pending',
     },
   });
+
+  useEffect(() => {
+    const unregisterAdd = registerAddAction(() => {
+      setEditingRecord(null);
+      form.reset({
+        staffId: [],
+        date: dateFilter,
+        amount: 0,
+        purpose: '',
+        category: ['Other'],
+        location: { from: '', to: '' },
+        receipt: false,
+        status: 'Pending',
+      });
+      setIsModalOpen(true);
+    });
+    const unregisterDownload = registerDownloadAction(handleDownloadCSV);
+    return () => {
+      unregisterAdd();
+      unregisterDownload();
+    };
+  }, [registerAddAction, registerDownloadAction, handleDownloadCSV, form, dateFilter]);
   const selectedCategories = form.watch('category') || [];
 
   const suggestions = React.useMemo(() => {

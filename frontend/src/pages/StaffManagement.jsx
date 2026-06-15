@@ -99,8 +99,35 @@ export default function StaffManagement() {
   );
 
 
+  const [editingStaff, setEditingStaff] = useState(null);
+
+  const form = useForm({
+    resolver: zodResolver(staffSchema),
+    defaultValues: {
+      name: '',
+      role: '',
+      dept: '',
+      phone: '',
+      email: '',
+      initials: '',
+      color: '#2C5F8A',
+    },
+  });
+
   useEffect(() => {
-    const unregisterAdd = registerAddAction(() => setIsModalOpen(true));
+    const unregisterAdd = registerAddAction(() => {
+      setEditingStaff(null);
+      form.reset({
+        name: '',
+        role: '',
+        dept: '',
+        phone: '',
+        email: '',
+        initials: '',
+        color: '#2C5F8A',
+      });
+      setIsModalOpen(true);
+    });
     const unregisterImport = registerImportAction(() => setIsImportModalOpen(true));
     const unregisterDownload = registerDownloadAction(() => {
       const exportData = filteredStaff.map(s => ({
@@ -118,22 +145,7 @@ export default function StaffManagement() {
       unregisterImport();
       unregisterDownload();
     };
-  }, [registerAddAction, registerImportAction, registerDownloadAction, filteredStaff]);
-
-  const [editingStaff, setEditingStaff] = useState(null);
-
-  const form = useForm({
-    resolver: zodResolver(staffSchema),
-    defaultValues: {
-      name: '',
-      role: '',
-      dept: '',
-      phone: '',
-      email: '',
-      initials: '',
-      color: '#2C5F8A',
-    },
-  });
+  }, [registerAddAction, registerImportAction, registerDownloadAction, filteredStaff, form]);
 
   const onSubmit = async (values) => {
     try {

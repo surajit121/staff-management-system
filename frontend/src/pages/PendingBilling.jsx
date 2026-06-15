@@ -78,8 +78,31 @@ export default function PendingBilling() {
     );
   });
 
+  const form = useForm({
+    resolver: zodResolver(billingSchema),
+    defaultValues: {
+      project: '',
+      vendor: '',
+      deliveredDate: new Date().toISOString().split('T')[0],
+      status: 'Pending',
+      attachments: [],
+      items: [{ item: '', quality: '', qty: 0, rate: 0, amount: 0 }],
+    },
+  });
+
   useEffect(() => {
-    const unregisterAdd = registerAddAction(() => setIsModalOpen(true));
+    const unregisterAdd = registerAddAction(() => {
+      setEditingRecord(null);
+      form.reset({
+        project: '',
+        vendor: '',
+        deliveredDate: new Date().toISOString().split('T')[0],
+        status: 'Pending',
+        attachments: [],
+        items: [{ item: '', quality: '', qty: 0, rate: 0, amount: 0 }],
+      });
+      setIsModalOpen(true);
+    });
     const unregisterDownload = registerDownloadAction(() => {
       const exportData = filteredBills.map(b => ({
         Item: b.item,
@@ -97,19 +120,7 @@ export default function PendingBilling() {
       unregisterAdd();
       unregisterDownload();
     };
-  }, [registerAddAction, registerDownloadAction, filteredBills]);
-
-  const form = useForm({
-    resolver: zodResolver(billingSchema),
-    defaultValues: {
-      project: '',
-      vendor: '',
-      deliveredDate: new Date().toISOString().split('T')[0],
-      status: 'Pending',
-      attachments: [],
-      items: [{ item: '', quality: '', qty: 0, rate: 0, amount: 0 }],
-    },
-  });
+  }, [registerAddAction, registerDownloadAction, filteredBills, form]);
 
   const { fields, append, remove: removeField } = useFieldArray({
     control: form.control,

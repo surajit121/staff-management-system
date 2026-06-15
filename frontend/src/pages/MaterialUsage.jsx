@@ -107,8 +107,27 @@ export default function MaterialUsage() {
     return matchesSearch;
   });
 
+  const form = useForm({
+    resolver: zodResolver(materialSchema),
+    defaultValues: {
+      project: '',
+      items: [{ item: '', used: 0, wasted: 0, returned: 0, quality: '', isCustom: false }],
+      date: dateFilter,
+      loggedBy: 'Site Manager',
+    },
+  });
+
   useEffect(() => {
-    const unregisterAdd = registerAddAction(() => setIsModalOpen(true));
+    const unregisterAdd = registerAddAction(() => {
+      setEditingRecord(null);
+      form.reset({
+        project: '',
+        items: [{ item: '', used: 0, wasted: 0, returned: 0, quality: '', isCustom: false }],
+        date: dateFilter,
+        loggedBy: 'Site Manager',
+      });
+      setIsModalOpen(true);
+    });
     const unregisterDownload = registerDownloadAction(() => {
       const exportData = filteredUsage.map(u => ({
         Project: u.project,
@@ -125,17 +144,7 @@ export default function MaterialUsage() {
       unregisterAdd();
       unregisterDownload();
     };
-  }, [registerAddAction, registerDownloadAction, filteredUsage]);
-
-  const form = useForm({
-    resolver: zodResolver(materialSchema),
-    defaultValues: {
-      project: '',
-      items: [{ item: '', used: 0, wasted: 0, returned: 0, quality: '', isCustom: false }],
-      date: dateFilter,
-      loggedBy: 'Site Manager',
-    },
-  });
+  }, [registerAddAction, registerDownloadAction, filteredUsage, form, dateFilter]);
 
   const { fields, append, remove: removeField } = useFieldArray({
     control: form.control,

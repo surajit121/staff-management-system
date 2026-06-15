@@ -66,8 +66,33 @@ export default function Performance() {
     );
   });
 
+  const form = useForm({
+    resolver: zodResolver(performanceSchema),
+    defaultValues: {
+      staffId: '',
+      period: 'Monthly',
+      date: new Date().toISOString().split('T')[0],
+      rating: 5,
+      kpi: '',
+      comments: '',
+      reviewed: 'Admin',
+    },
+  });
+
   useEffect(() => {
-    const unregisterAdd = registerAddAction(() => setIsModalOpen(true));
+    const unregisterAdd = registerAddAction(() => {
+      setEditingRecord(null);
+      form.reset({
+        staffId: '',
+        period: 'Monthly',
+        date: new Date().toISOString().split('T')[0],
+        rating: 5,
+        kpi: '',
+        comments: '',
+        reviewed: 'Admin',
+      });
+      setIsModalOpen(true);
+    });
     const unregisterDownload = registerDownloadAction(() => {
       const exportData = filteredLogs.map(l => ({
         StaffName: l.staffId?.name || 'Unknown',
@@ -84,20 +109,7 @@ export default function Performance() {
       unregisterAdd();
       unregisterDownload();
     };
-  }, [registerAddAction, registerDownloadAction, filteredLogs]);
-
-  const form = useForm({
-    resolver: zodResolver(performanceSchema),
-    defaultValues: {
-      staffId: '',
-      period: 'Monthly',
-      date: new Date().toISOString().split('T')[0],
-      rating: 5,
-      kpi: '',
-      comments: '',
-      reviewed: 'Admin',
-    },
-  });
+  }, [registerAddAction, registerDownloadAction, filteredLogs, form]);
 
   const onSubmit = async (values) => {
     try {

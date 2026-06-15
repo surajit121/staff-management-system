@@ -52,18 +52,6 @@ export default function LeaveManagement() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const unregisterAdd = registerAddAction(() => setIsModalOpen(true));
-    return () => unregisterAdd();
-  }, [registerAddAction]);
-
-  const filteredLeaves = leaves.filter(item => {
-    const staffName = item.staffId?.name || '';
-    return staffName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           item.status.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
   const form = useForm({
     resolver: zodResolver(leaveSchema),
     defaultValues: {
@@ -74,6 +62,28 @@ export default function LeaveManagement() {
       reason: '',
       status: 'Pending',
     },
+  });
+
+  useEffect(() => {
+    const unregisterAdd = registerAddAction(() => {
+      form.reset({
+        staffId: '',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0],
+        type: 'Sick',
+        reason: '',
+        status: 'Pending',
+      });
+      setIsModalOpen(true);
+    });
+    return () => unregisterAdd();
+  }, [registerAddAction, form]);
+
+  const filteredLeaves = leaves.filter(item => {
+    const staffName = item.staffId?.name || '';
+    return staffName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           item.status.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const onSubmit = async (values) => {
