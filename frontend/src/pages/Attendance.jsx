@@ -41,7 +41,7 @@ import { Button } from "../components/ui/button";
 const attendanceSchema = z.object({
   staffId: z.string().min(1, "Staff selection is required"),
   date: z.string().min(1, "Date is required"),
-  status: z.enum(['Present', 'Absent', 'Half Day', 'Work From Home']),
+  status: z.enum(['Present', 'Absent', 'Half Day', 'Work From Home', 'N/A']),
   checkIn: z.string().optional(),
   checkOut: z.string().optional(),
   notes: z.string().optional(),
@@ -196,7 +196,7 @@ export default function Attendance() {
           notes: '',
         });
         toast.success(`Marked Present on ${dateStr}`);
-      } else if (record.status === 'Present' || record.status === 'Half Day' || record.status === 'Work From Home') {
+      } else if (record.status === 'Present' || record.status === 'Half Day' || record.status === 'Work From Home' || record.status === 'N/A') {
         await update({
           id: record._id,
           data: {
@@ -288,6 +288,7 @@ export default function Attendance() {
                         "px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide",
                         item.status === 'Present' ? "bg-green-light text-green" :
                           item.status === 'Absent' ? "bg-red-light text-red" : 
+                          item.status === 'N/A' ? "bg-surface2 text-text3" :
                           item.isNotMarked ? "bg-surface2 text-text3" : "bg-amber-light text-amber"
                       )}>
                         {item.status}
@@ -406,7 +407,7 @@ export default function Attendance() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-surface border-border">
-                          {['Present', 'Absent', 'Half Day', 'Work From Home'].map(s => (
+                          {['Present', 'Absent', 'Half Day', 'Work From Home', 'N/A'].map(s => (
                             <SelectItem key={s} value={s}>{s}</SelectItem>
                           ))}
                         </SelectContent>

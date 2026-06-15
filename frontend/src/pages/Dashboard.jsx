@@ -300,10 +300,13 @@ export default function Dashboard() {
               Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)
             ) : (
               attendance.slice(0, 5).map((log, idx) => {
-                const isPresent = log.status === 'Present';
-                const dotColor = isPresent
+                const dotColor = log.status === 'Present'
                   ? (isDark ? '#34D399' : '#16A34A')
-                  : (isDark ? '#F87171' : '#DC2626');
+                  : log.status === 'Absent'
+                  ? (isDark ? '#F87171' : '#DC2626')
+                  : log.status === 'N/A'
+                  ? (isDark ? '#64748B' : '#94A3B8')
+                  : (isDark ? '#FBBF24' : '#D97706');
 
                 return (
                   <motion.div
