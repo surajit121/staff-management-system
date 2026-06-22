@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, AlertCircle, TrendingDown, Edit2, Trash2, Loader2, Plus, Receipt, Paperclip, X, Eye, FilePlus, MapPin, User, Wallet, BarChart3, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useBilling, useProjects } from '../hooks/useResource';
+import { useBilling, useProjects, useVendors } from '../hooks/useResource';
 import { cn, formatDate } from '../lib/utils';
 import { Skeleton } from '../components/ui/skeleton';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -10,6 +10,7 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 import { useAction } from '../context/ActionContext';
 import { downloadCSV } from '../lib/export';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 import {
   Dialog,
@@ -60,8 +61,9 @@ const billingSchema = z.object({
 });
 
 export default function PendingBilling() {
-  const { data: bills, isLoading, create, update, remove, isCreating, isUpdating, bulkCreate } = useBilling();
+  const { data: bills, isLoading, update, remove, isCreating, isUpdating, bulkCreate } = useBilling();
   const { data: projects } = useProjects();
+  const { data: vendors } = useVendors();
   const { registerAddAction, registerDownloadAction, searchQuery } = useAction();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -209,7 +211,7 @@ export default function PendingBilling() {
       try {
         await remove(id);
         toast.success("Record deleted");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete record");
       }
     }
@@ -227,8 +229,8 @@ export default function PendingBilling() {
     <div className="space-y-6 animate-fade-in">
        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
-          { label: 'Outstanding Amt', value: `₹${outstandingAmt.toLocaleString()}`, icon: TrendingDown, color: 'text-red bg-red-light' },
-          { label: 'Unbilled Items', value: bills.filter(b => b.status === 'Pending').length, icon: AlertCircle, color: 'text-amber bg-amber-light' },
+          { label: 'Outstanding Amt', value: outstandingAmt, prefix: '₹', icon: TrendingDown, color: 'text-red bg-red-light' },
+          { label: 'Unbilled Items', value: bills.filter(b => b.status === 'Pending').length, prefix: '', icon: AlertCircle, color: 'text-amber bg-amber-light' },
         ].map(stat => (
           <div key={stat.label} className="bg-surface border border-border rounded-xl p-5 shadow-sm flex items-center gap-4">
             <div className={cn("p-3 rounded-lg", stat.color)}>
@@ -236,7 +238,9 @@ export default function PendingBilling() {
             </div>
             <div>
               <div className="text-[12px] text-text2 font-medium">{stat.label}</div>
-              <div className="text-xl font-bold">{stat.value}</div>
+              <div className="text-xl font-bold">
+                <AnimatedCounter value={stat.value} prefix={stat.prefix} />
+              </div>
             </div>
           </div>
         ))}
@@ -260,7 +264,7 @@ export default function PendingBilling() {
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
                   ))
-                ) : filteredBills.map((b, idx) => (
+                ) : filteredBills.map((b) => (
                   <motion.tr 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     key={b._id} 
@@ -354,7 +358,13 @@ export default function PendingBilling() {
                   <FormItem className="space-y-1">
                     <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Vendor / Supplier</FormLabel>
                     <FormControl>
-                      <Input placeholder="A1 Steel Co." {...field} className="bg-surface border-border/60 h-9 px-3 text-xs focus-visible:ring-accent" />
+                      <Combobox
+                        options={(vendors || []).map(v => ({ value: v.name, label: v.name }))}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Vendor / Supplier"
+                        className="bg-surface border-border/60"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

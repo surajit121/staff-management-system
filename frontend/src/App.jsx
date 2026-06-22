@@ -20,6 +20,11 @@ import PendingBilling from './pages/PendingBilling';
 import SalaryPayment from './pages/SalaryPayment';
 import LeaveManagement from './pages/LeaveManagement';
 import Remarks from './pages/Remarks';
+import SiteDiary from './pages/SiteDiary';
+import VendorRegistry from './pages/VendorRegistry';
+import AssetManager from './pages/AssetManager';
+
+
 
 const queryClient = new QueryClient();
 
@@ -73,6 +78,9 @@ function App() {
                         <Route path="/salary"    element={<SalaryPayment />} />
                         <Route path="/leave"     element={<LeaveManagement />} />
                         <Route path="/remarks"   element={<Remarks />} />
+                        <Route path="/site-diary" element={<SiteDiary />} />
+                        <Route path="/vendors"   element={<VendorRegistry />} />
+                        <Route path="/assets"    element={<AssetManager />} />
                       </Routes>
                     </Layout>
                   </ProtectedRoute>

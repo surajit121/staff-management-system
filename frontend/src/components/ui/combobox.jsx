@@ -21,9 +21,12 @@ export function Combobox({ options = [], value, onChange, placeholder = "Select 
   useEffect(() => {
     const selectedOption = options.find(opt => opt.value === value);
     if (selectedOption && !isOpen) {
-      setSearchTerm(selectedOption.label);
+      const label = selectedOption.label;
+      const timer = setTimeout(() => setSearchTerm(label), 0);
+      return () => clearTimeout(timer);
     } else if (!value && !isOpen) {
-      setSearchTerm("");
+      const timer = setTimeout(() => setSearchTerm(""), 0);
+      return () => clearTimeout(timer);
     }
   }, [value, options, isOpen]);
 

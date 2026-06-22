@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ClipboardList, MapPin, Clock, Edit2, Trash2, Loader2, Plus, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRemarks, useStaff } from '../hooks/useResource';
-import { cn, formatDate } from '../lib/utils';
+import { formatDate } from '../lib/utils';
 import { Skeleton } from '../components/ui/skeleton';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,7 +49,7 @@ const remarkSchema = z.object({
 export default function Remarks() {
   const { data: remarks, isLoading, create, update, remove, isCreating, isUpdating } = useRemarks();
   const { staffList } = useStaff();
-  const { registerAddAction, searchQuery, dateFilter, setDateFilter, isFilterOpen } = useAction();
+  const { registerAddAction, searchQuery, dateFilter, isFilterOpen } = useAction();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -62,6 +62,18 @@ export default function Remarks() {
                           (remark.purpose?.toLowerCase() || '').includes(q);
     const matchesDate = !isFilterOpen || !dateFilter || remark.date === dateFilter;
     return matchesSearch && matchesDate;
+  });
+
+  const form = useForm({
+    resolver: zodResolver(remarkSchema),
+    defaultValues: {
+      staffId: '',
+      date: dateFilter || new Date().toISOString().split('T')[0],
+      destination: '',
+      purpose: '',
+      goingTime: '',
+      returnTime: '',
+    },
   });
 
   useEffect(() => {
@@ -78,19 +90,7 @@ export default function Remarks() {
       setIsModalOpen(true);
     });
     return () => unregisterAdd();
-  }, [registerAddAction, dateFilter]);
-
-  const form = useForm({
-    resolver: zodResolver(remarkSchema),
-    defaultValues: {
-      staffId: '',
-      date: dateFilter || new Date().toISOString().split('T')[0],
-      destination: '',
-      purpose: '',
-      goingTime: '',
-      returnTime: '',
-    },
-  });
+  }, [registerAddAction, dateFilter, form]);
 
   const onSubmit = async (values) => {
     try {
@@ -125,7 +125,7 @@ export default function Remarks() {
       try {
         await remove(id);
         toast.success("Remark deleted");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete remark");
       }
     }

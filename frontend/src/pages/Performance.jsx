@@ -10,6 +10,7 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 import { useAction } from '../context/ActionContext';
 import { downloadCSV } from '../lib/export';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 import {
   Dialog,
@@ -145,7 +146,7 @@ export default function Performance() {
       try {
         await remove(id);
         toast.success("Record deleted");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete record");
       }
     }
@@ -163,8 +164,8 @@ export default function Performance() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
-          { label: 'Avg. Rating', value: `${avgRating} / 5.0`, icon: Star, color: 'text-amber bg-amber-light' },
-          { label: 'Reviews Logged', value: logs.length, icon: MessageSquare, color: 'text-purple bg-purple-light' },
+          { label: 'Avg. Rating', value: parseFloat(avgRating), decimals: 1, suffix: ' / 5.0', icon: Star, color: 'text-amber bg-amber-light' },
+          { label: 'Reviews Logged', value: logs.length, decimals: 0, suffix: '', icon: MessageSquare, color: 'text-purple bg-purple-light' },
         ].map(stat => (
           <div key={stat.label} className="bg-surface border border-border rounded-xl p-5 shadow-sm flex items-center gap-4">
             <div className={cn("p-3 rounded-lg", stat.color)}>
@@ -172,7 +173,9 @@ export default function Performance() {
             </div>
             <div>
               <div className="text-[12px] text-text2 font-medium">{stat.label}</div>
-              <div className="text-xl font-bold">{stat.value}</div>
+              <div className="text-xl font-bold">
+                <AnimatedCounter value={stat.value} decimals={stat.decimals} suffix={stat.suffix} />
+              </div>
             </div>
           </div>
         ))}
@@ -195,7 +198,7 @@ export default function Performance() {
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
                   ))
-                ) : filteredLogs.map((log, idx) => (
+                ) : filteredLogs.map((log) => (
                   <motion.tr 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     key={log._id} 

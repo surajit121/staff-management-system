@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useAction } from '../context/ActionContext';
 import StaffCalendar from '../components/StaffCalendar';
 import { downloadCSV } from '../lib/export';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 import {
   Dialog,
@@ -46,6 +47,34 @@ const attendanceSchema = z.object({
   checkOut: z.string().optional(),
   notes: z.string().optional(),
 });
+
+const tableBodyVariants = {
+  hidden: { opacity: 1 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+};
+
+const tableRowVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -15, 
+    transition: { duration: 0.2 } 
+  }
+};
 
 export default function Attendance() {
   const { data: attendance, isLoading, create, update, remove, isCreating, isUpdating } = useAttendance();
@@ -183,7 +212,7 @@ export default function Attendance() {
       try {
         await remove(id);
         toast.success("Record deleted");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete record");
       }
     }
@@ -253,7 +282,9 @@ export default function Attendance() {
             </div>
             <div>
               <div className="text-[12px] text-text2 font-medium">{stat.label}</div>
-              <div className="text-xl font-bold">{stat.value}</div>
+              <div className="text-xl font-bold">
+                <AnimatedCounter value={stat.value} />
+              </div>
             </div>
           </div>
         ))}
@@ -271,17 +302,15 @@ export default function Attendance() {
                 <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody variants={tableBodyVariants} initial="hidden" animate="visible">
               <AnimatePresence>
                 {(isLoading || isStaffLoading) ? (
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i} className="border-b border-border"><td colSpan={5} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
                   ))
-                ) : mergedAttendance.map((item, idx) => (
+                ) : mergedAttendance.map((item) => (
                   <motion.tr
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    variants={tableRowVariants}
                     key={item._id}
                     className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
                   >
@@ -352,7 +381,7 @@ export default function Attendance() {
                   </motion.tr>
                 ))}
               </AnimatePresence>
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
       </div>

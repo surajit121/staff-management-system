@@ -10,7 +10,7 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 import { useAction } from '../context/ActionContext';
 import { downloadCSV } from '../lib/export';
-import { uploadService } from '../services/api';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 import {
   Dialog,
@@ -336,6 +336,34 @@ function MemberMultiSelect({ staffList, value = [], onChange }) {
   );
 }
 
+const tableBodyVariants = {
+  hidden: { opacity: 1 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+};
+
+const tableRowVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -15, 
+    transition: { duration: 0.2 } 
+  }
+};
+
 export default function Expenses() {
   const { data: expenses, isLoading, create, update, remove, isCreating, isUpdating } = useExpenses();
   const { staffList } = useStaff();
@@ -476,7 +504,7 @@ export default function Expenses() {
       try {
         await remove(id);
         toast.success("Record deleted");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete record");
       }
     }
@@ -510,8 +538,8 @@ export default function Expenses() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { label: 'Total Approved', value: `₹${(totalAmount - pendingAmount).toLocaleString()}`, icon: TrendingUp, color: 'text-green bg-green-light' },
-          { label: 'Pending Approval', value: `₹${pendingAmount.toLocaleString()}`, icon: AlertTriangle, color: 'text-amber bg-amber-light' },
+          { label: 'Total Approved', value: totalAmount - pendingAmount, prefix: '₹', icon: TrendingUp, color: 'text-green bg-green-light' },
+          { label: 'Pending Approval', value: pendingAmount, prefix: '₹', icon: AlertTriangle, color: 'text-amber bg-amber-light' },
           { 
             label: 'Total Requests', 
             value: filteredExpenses.length, 
@@ -537,7 +565,9 @@ export default function Expenses() {
                 {stat.label}
                 {stat.clickable && <Plus size={10} className="text-accent" />}
               </div>
-              <div className="text-xl font-bold">{stat.value}</div>
+              <div className="text-xl font-bold">
+                <AnimatedCounter value={stat.value} prefix={stat.prefix || ''} />
+              </div>
             </div>
           </div>
         ))}
@@ -554,7 +584,7 @@ export default function Expenses() {
                 <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody variants={tableBodyVariants} initial="hidden" animate="visible">
               <AnimatePresence>
                 {isLoading ? (
                   Array(5).fill(0).map((_, i) => (
@@ -565,7 +595,7 @@ export default function Expenses() {
                   const hasRoute = e.location?.from || e.location?.to;
                   return (
                     <motion.tr 
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      variants={tableRowVariants}
                       key={e._id} 
                       className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all group"
                     >
@@ -652,7 +682,7 @@ export default function Expenses() {
                   );
                 })}
               </AnimatePresence>
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
       </div>

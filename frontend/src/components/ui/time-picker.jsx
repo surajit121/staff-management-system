@@ -13,20 +13,29 @@ export function TimePicker({ value, onChange }) {
   const [ampm, setAmpm] = useState("AM");
 
   useEffect(() => {
+    let timer;
     if (value) {
       const [h, m] = value.split(':');
       let hour = parseInt(h, 10);
       const isPm = hour >= 12;
       if (hour === 0) hour = 12;
       else if (hour > 12) hour -= 12;
-      setHour12(hour.toString().padStart(2, '0'));
-      setMinute(m);
-      setAmpm(isPm ? 'PM' : 'AM');
+      const formattedH = hour.toString().padStart(2, '0');
+      timer = setTimeout(() => {
+        setHour12(formattedH);
+        setMinute(m);
+        setAmpm(isPm ? 'PM' : 'AM');
+      }, 0);
     } else {
-      setHour12("");
-      setMinute("");
-      setAmpm("AM");
+      timer = setTimeout(() => {
+        setHour12("");
+        setMinute("");
+        setAmpm("AM");
+      }, 0);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [value]);
 
   const triggerChange = (h, m, a) => {

@@ -22,6 +22,9 @@ import { SalaryPayment } from './models/SalaryPayment.js';
 import { Leave } from './models/Leave.js';
 import { Admin } from './models/Admin.js';
 import { Remark } from './models/Remark.js';
+import { SiteDiary } from './models/SiteDiary.js';
+import { Vendor } from './models/Vendor.js';
+import { Asset } from './models/Asset.js';
 import authRoutes from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
 import bcrypt from 'bcryptjs';
@@ -297,12 +300,92 @@ createRoutes(Billing, 'billing');
 createRoutes(SalaryPayment, 'salary-payments', 'staffId');
 createRoutes(Leave, 'leave', 'staffId');
 createRoutes(Remark, 'remarks', 'staffId');
+createRoutes(SiteDiary, 'site-diary', 'projectId');
+createRoutes(Vendor, 'vendors');
+createRoutes(Asset, 'assets', 'assignedTo assignedProject');
+
+// Log maintenance entry for an Asset
+app.post('/api/assets/:id/maintenance', authMiddleware, async (req, res) => {
+  try {
+    const { date, type, cost, notes, performedBy } = req.body;
+    if (!date) return res.status(400).json({ message: 'Service date is required' });
+    
+    const asset = await Asset.findById(req.params.id);
+    if (!asset) return res.status(404).json({ message: 'Asset not found' });
+    
+    asset.maintenanceLog.push({ date, type, cost, notes, performedBy });
+    asset.lastServiceDate = date;
+    
+    await asset.save();
+    await clearCache('assets');
+    
+    const populatedAsset = await Asset.findById(asset._id).populate('assignedTo assignedProject');
+    res.json(populatedAsset);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Get assets overdue for service
+app.get('/api/assets/due-service', authMiddleware, async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const assets = await Asset.find({
+      nextServiceDue: { $ne: '', $lte: today },
+      currentCondition: { $ne: 'Retired' }
+    }).populate('assignedTo assignedProject').lean();
+    res.json(assets);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 // Special route for staff selection in attendance/expenses
 app.get('/api/staff-list', authMiddleware, cacheMiddleware(300), async (req, res) => {
   try {
     const staff = await Staff.find({}, 'name role color initials').lean();
     res.json(staff);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Vendor list for billing combobox
+app.get('/api/vendor-list', authMiddleware, cacheMiddleware(120), async (req, res) => {
+  try {
+    const vendors = await Vendor.find({ isActive: true }, 'name category').lean();
+    res.json(vendors);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Vendor billing history
+app.get('/api/vendors/:id/history', authMiddleware, async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.params.id).lean();
+    if (!vendor) return res.status(404).json({ message: 'Vendor not found' });
+    const bills = await Billing.find({ vendor: vendor.name }).sort({ createdAt: -1 }).lean();
+    res.json(bills);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Bulk status update for Billing
+app.put('/api/billing/bulk-status', authMiddleware, async (req, res) => {
+  try {
+    const { ids, status } = req.body;
+    if (!Array.isArray(ids) || !ids.length) {
+      return res.status(400).json({ message: 'List of billing IDs is required' });
+    }
+    if (!['Pending', 'Billed', 'Cancelled'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status value' });
+    }
+    await Billing.updateMany({ _id: { $in: ids } }, { $set: { status } });
+    await clearCache('billing');
+    res.json({ message: 'Billing status updated successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

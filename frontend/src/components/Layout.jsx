@@ -19,6 +19,9 @@ const pageInfo = {
   '/salary':     { title: 'Salary Payments',     subtitle: 'Manage staff salaries' },
   '/leave':      { title: 'Leave Management',    subtitle: 'Approve or reject leave' },
   '/remarks':    { title: 'Staff Movement',      subtitle: 'Daily movement and remarks' },
+  '/site-diary': { title: 'Site Diary',          subtitle: 'Daily site progress and work logs' },
+  '/vendors':    { title: 'Vendor Registry',     subtitle: 'Supplier and subcontractor directory' },
+  '/assets':     { title: 'Assets & Equipment',  subtitle: 'Track corporate vehicles and site tools' },
 };
 
 export default function Layout({ children }) {
@@ -49,10 +52,10 @@ export default function Layout({ children }) {
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, y: 12, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.985 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             >
               {children}
             </motion.div>

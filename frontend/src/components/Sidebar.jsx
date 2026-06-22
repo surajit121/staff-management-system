@@ -17,6 +17,9 @@ import {
   Banknote,
   CalendarClock,
   ClipboardList,
+  BookOpen,
+  Store,
+  Wrench,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStaff } from '../hooks/useResource';
@@ -36,9 +39,12 @@ const navItems = [
   { label: 'Remarks',       path: '/remarks',    icon: ClipboardList },
   { label: 'Inventory', isHeader: true },
   { label: 'Project Master',path: '/projects',   icon: Building2 },
+  { label: 'Site Diary',    path: '/site-diary',  icon: BookOpen },
+  { label: 'Vendor Registry',path: '/vendors',   icon: Store },
   { label: 'Stock Transfer',path: '/stock',      icon: Truck },
   { label: 'Material Usage',path: '/materials',  icon: Box },
   { label: 'Pending Billing',path: '/billing',   icon: FileText, badgeDot: true },
+  { label: 'Assets',         path: '/assets',    icon: Wrench },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -60,7 +66,10 @@ export default function Sidebar({ isOpen, onClose }) {
   };
 
   useEffect(() => {
-    handleLogoClick();
+    const timer = setTimeout(() => {
+      handleLogoClick();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [location.pathname]);
 
   const renderContent = () => (

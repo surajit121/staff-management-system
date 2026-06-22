@@ -42,9 +42,25 @@ import {
 } from "../components/ui/dialog";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import AnimatedCounter from '../components/AnimatedCounter';
 
 /* ── Stat Card ── */
-const StatCard = ({ label, value, subValue, icon: Icon, accentColor, bgRest, bgHover, isLoading, onClick, delay = 0 }) => {
+const StatCard = ({ 
+  label, 
+  value, 
+  isCounter, 
+  prefix = '', 
+  suffix = '', 
+  decimals = 0, 
+  subValue, 
+  icon: Icon, // eslint-disable-line no-unused-vars 
+  accentColor, 
+  bgRest, 
+  bgHover, 
+  isLoading, 
+  onClick, 
+  delay = 0 
+}) => {
   const [hovered, setHovered] = React.useState(false);
 
   return (
@@ -89,7 +105,11 @@ const StatCard = ({ label, value, subValue, icon: Icon, accentColor, bgRest, bgH
         <Skeleton className="h-8 w-24 mb-1.5" />
       ) : (
         <div className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>
-          {value}
+          {isCounter ? (
+            <AnimatedCounter value={Number(value)} prefix={prefix} suffix={suffix} decimals={decimals} />
+          ) : (
+            value
+          )}
         </div>
       )}
 
@@ -176,7 +196,8 @@ export default function Dashboard() {
     {
       label: 'Total Staff',
       id: 'staff',
-      value: stats?.staffCount || '0',
+      value: stats?.staffCount || 0,
+      isCounter: true,
       subValue: 'Active employees',
       icon: Users,
       accentColor: isDark ? '#5B8AF8' : '#3B6CF6',
@@ -186,7 +207,8 @@ export default function Dashboard() {
     {
       label: 'Pending Expenses',
       id: 'expenses',
-      value: stats?.pendingExpensesCount || '0',
+      value: stats?.pendingExpensesCount || 0,
+      isCounter: true,
       subValue: 'Awaiting approval',
       icon: Wallet,
       accentColor: isDark ? '#FBBF24' : '#D97706',
@@ -196,7 +218,8 @@ export default function Dashboard() {
     {
       label: 'Active Projects',
       id: 'projects',
-      value: stats?.activeProjectsCount || '0',
+      value: stats?.activeProjectsCount || 0,
+      isCounter: true,
       subValue: 'Ongoing sites',
       icon: Briefcase,
       accentColor: isDark ? '#34D399' : '#16A34A',
@@ -206,7 +229,10 @@ export default function Dashboard() {
     {
       label: 'Pending Billing',
       id: 'billing',
-      value: `₹${((stats?.totalPendingBilling || 0) / 1000).toFixed(0)}K`,
+      value: (stats?.totalPendingBilling || 0) / 1000,
+      isCounter: true,
+      prefix: '₹',
+      suffix: 'K',
       subValue: 'Delivered not billed',
       icon: FileText,
       accentColor: isDark ? '#F87171' : '#DC2626',

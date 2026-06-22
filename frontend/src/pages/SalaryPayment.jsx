@@ -10,6 +10,7 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 import { useAction } from '../context/ActionContext';
 import { downloadCSV } from '../lib/export';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 import {
   Dialog,
@@ -163,7 +164,7 @@ export default function SalaryPayment() {
       try {
         await remove(id);
         toast.success("Record deleted");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete record");
       }
     }
@@ -232,11 +233,12 @@ export default function SalaryPayment() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { label: 'Total Paid out', value: `₹${totalPaid.toLocaleString()}`, icon: TrendingUp, color: 'text-green bg-green-light' },
-          { label: 'Pending Payout', value: `₹${pendingAmount.toLocaleString()}`, icon: AlertTriangle, color: 'text-amber bg-amber-light' },
+          { label: 'Total Paid out', value: totalPaid, prefix: '₹', icon: TrendingUp, color: 'text-green bg-green-light' },
+          { label: 'Pending Payout', value: pendingAmount, prefix: '₹', icon: AlertTriangle, color: 'text-amber bg-amber-light' },
           { 
             label: 'Total Salary Records', 
             value: filteredSalaries.length, 
+            prefix: '',
             icon: Banknote, 
             color: 'text-accent bg-accent-light',
             onClick: () => setIsHistoryOpen(true),
@@ -259,7 +261,9 @@ export default function SalaryPayment() {
                 {stat.label}
                 {stat.clickable && <Plus size={10} className="text-accent" />}
               </div>
-              <div className="text-xl font-bold">{stat.value}</div>
+              <div className="text-xl font-bold">
+                <AnimatedCounter value={stat.value} prefix={stat.prefix} />
+              </div>
             </div>
           </div>
         ))}
@@ -282,7 +286,7 @@ export default function SalaryPayment() {
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
                   ))
-                ) : filteredSalaries.map((s, idx) => (
+                ) : filteredSalaries.map((s) => (
                   <motion.tr 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     key={s._id} 

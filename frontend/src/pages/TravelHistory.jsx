@@ -10,6 +10,7 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 import { useAction } from '../context/ActionContext';
 import { downloadCSV } from '../lib/export';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 import {
   Dialog,
@@ -214,6 +215,23 @@ export default function TravelHistory() {
     downloadCSV(exportData, 'Travel_History_Full_Report');
   }, [trips]);
 
+  const form = useForm({
+    resolver: zodResolver(travelSchema),
+    defaultValues: {
+      staffId: [],
+      date: dateFilter,
+      from: '',
+      to: '',
+      travelDetails: [{ mode: 'Car', distance: 0, duration: 0, cost: 0 }],
+      purpose: '',
+    },
+  });
+  
+  const { fields, append, remove: removeField } = useFieldArray({
+    control: form.control,
+    name: "travelDetails"
+  });
+
   useEffect(() => {
     const unregisterAdd = registerAddAction(() => {
       form.reset({
@@ -232,24 +250,7 @@ export default function TravelHistory() {
       unregisterAdd();
       unregisterDownload();
     };
-  }, [registerAddAction, registerDownloadAction, dateFilter, handleDownloadCSV]);
-
-  const form = useForm({
-    resolver: zodResolver(travelSchema),
-    defaultValues: {
-      staffId: [],
-      date: dateFilter,
-      from: '',
-      to: '',
-      travelDetails: [{ mode: 'Car', distance: 0, duration: 0, cost: 0 }],
-      purpose: '',
-    },
-  });
-  
-  const { fields, append, remove: removeField } = useFieldArray({
-    control: form.control,
-    name: "travelDetails"
-  });
+  }, [registerAddAction, registerDownloadAction, dateFilter, handleDownloadCSV, form]);
 
   const onSubmit = async (values) => {
     try {
@@ -294,7 +295,7 @@ export default function TravelHistory() {
       try {
         await remove(id);
         toast.success("Record deleted");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete record");
       }
     }
@@ -313,6 +314,8 @@ export default function TravelHistory() {
           { 
             label: 'Total Trips', 
             value: trips.length, 
+            prefix: '',
+            suffix: '',
             icon: MapPin, 
             color: 'text-teal bg-teal-light',
             onClick: () => setIsHistoryOpen(true),
@@ -320,7 +323,9 @@ export default function TravelHistory() {
           },
           { 
             label: 'Total Distance', 
-            value: `${trips.reduce((acc, t) => acc + ((t.travelDetails || []).reduce((a, c) => a + (Number(c.distance) || 0), 0) || Number(t.distance) || 0), 0).toFixed(0)} km`, 
+            value: trips.reduce((acc, t) => acc + ((t.travelDetails || []).reduce((a, c) => a + (Number(c.distance) || 0), 0) || Number(t.distance) || 0), 0),
+            prefix: '',
+            suffix: ' km',
             icon: Plane, 
             color: 'text-blue bg-blue-light' 
           },
@@ -341,7 +346,9 @@ export default function TravelHistory() {
                 {stat.label}
                 {stat.clickable && <Plus size={10} className="text-accent" />}
               </div>
-              <div className="text-xl font-bold">{stat.value}</div>
+              <div className="text-xl font-bold">
+                <AnimatedCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
+              </div>
             </div>
           </div>
         ))}
@@ -365,7 +372,7 @@ export default function TravelHistory() {
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
                   ))
-                ) : filteredTrips.map((trip, idx) => {
+                ) : filteredTrips.map((trip) => {
                   const members = Array.isArray(trip.staffId) ? trip.staffId.filter(Boolean) : (trip.staffId ? [trip.staffId] : []);
                   return (
                     <motion.tr 

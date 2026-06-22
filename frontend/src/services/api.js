@@ -55,10 +55,24 @@ export const travelService = createService('travel');
 export const projectService = createService('projects');
 export const stockService = createService('stock');
 export const materialService = createService('materials');
-export const billingService = createService('billing');
+export const billingService = {
+  ...createService('billing'),
+  bulkStatusUpdate: (ids, status) => api.put('/billing/bulk-status', { ids, status }).then(res => res.data),
+};
 export const salaryService = createService('salary-payments');
 export const leaveService = createService('leave');
 export const remarkService = createService('remarks');
+export const siteDiaryService = createService('site-diary');
+export const vendorService = {
+  ...createService('vendors'),
+  getList: () => api.get('/vendor-list').then(res => res.data),
+  getHistory: (id) => api.get(`/vendors/${id}/history`).then(res => res.data),
+};
+export const assetService = {
+  ...createService('assets'),
+  logMaintenance: (id, data) => api.post(`/assets/${id}/maintenance`, data).then(res => res.data),
+  getDueService: () => api.get('/assets/due-service').then(res => res.data),
+};
 
 export const dashboardService = {
   getStats: () => api.get('/dashboard-stats').then(res => res.data),

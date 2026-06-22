@@ -52,7 +52,7 @@ const stockSchema = z.object({
 });
 
 export default function StockTransfer() {
-  const { data: transfers, isLoading, create, bulkCreate, update, remove, isCreating, isUpdating } = useStock();
+  const { data: transfers, isLoading, create, update, remove, isCreating, isUpdating } = useStock();
   const { data: projects } = useProjects();
   const { registerAddAction, registerDownloadAction, searchQuery, dateFilter } = useAction();
 
@@ -67,6 +67,23 @@ export default function StockTransfer() {
       t.to?.toLowerCase().includes(q) ||
       t.project?.toLowerCase().includes(q);
     return matchesSearch;
+  });
+
+  const form = useForm({
+    resolver: zodResolver(stockSchema),
+    defaultValues: {
+      items: [{ name: '', qty: 0, quality: '' }],
+      from: 'Main Warehouse',
+      to: '',
+      project: '',
+      date: dateFilter,
+      status: 'In Transit',
+    },
+  });
+
+  const { fields, append, remove: removeField } = useFieldArray({
+    control: form.control,
+    name: "items"
   });
 
   useEffect(() => {
@@ -97,24 +114,7 @@ export default function StockTransfer() {
       unregisterAdd();
       unregisterDownload();
     };
-  }, [registerAddAction, registerDownloadAction, filteredTransfers]);
-
-  const form = useForm({
-    resolver: zodResolver(stockSchema),
-    defaultValues: {
-      items: [{ name: '', qty: 0, quality: '' }],
-      from: 'Main Warehouse',
-      to: '',
-      project: '',
-      date: dateFilter,
-      status: 'In Transit',
-    },
-  });
-
-  const { fields, append, remove: removeField } = useFieldArray({
-    control: form.control,
-    name: "items"
-  });
+  }, [registerAddAction, registerDownloadAction, filteredTransfers, form, dateFilter]);
 
   // Auto-fill Destination Site from project location when a project code is selected
   const watchedProjectCode = form.watch('project');
@@ -161,7 +161,7 @@ export default function StockTransfer() {
       try {
         await remove(id);
         toast.success("Record deleted");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete record");
       }
     }
@@ -211,7 +211,7 @@ export default function StockTransfer() {
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
                   ))
-                ) : filteredTransfers.map((t, idx) => (
+                ) : filteredTransfers.map((t) => (
                   <motion.tr
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     key={t._id}

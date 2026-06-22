@@ -2,7 +2,6 @@ import React from 'react';
 import { Calendar, Filter, Plus, Download, Search, X, Moon, Sun, LayoutPanelLeft, LogOut, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAction } from '../context/ActionContext';
-import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Topbar({ title, subtitle, onToggleSidebar }) {

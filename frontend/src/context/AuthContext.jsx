@@ -17,21 +17,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        try {
-          setUser(JSON.parse(savedUser));
-        } catch {
+    const timer = setTimeout(() => {
+      if (token) {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          try {
+            setUser(JSON.parse(savedUser));
+          } catch {
+            setUser({ token });
+          }
+        } else {
           setUser({ token });
         }
       } else {
-        setUser({ token });
+        setUser(null);
       }
-    } else {
-      setUser(null);
-    }
-    setLoading(false);
+      setLoading(false);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [token]);
 
   const login = (newToken, userData) => {

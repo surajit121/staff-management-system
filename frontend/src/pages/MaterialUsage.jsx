@@ -10,6 +10,7 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 import { useAction } from '../context/ActionContext';
 import { downloadCSV } from '../lib/export';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 import {
   Dialog,
@@ -89,7 +90,7 @@ const materialSchema = z.object({
 });
 
 export default function MaterialUsage() {
-  const { data: usage, isLoading, create, bulkCreate, update, remove, isCreating, isUpdating } = useMaterials();
+  const { data: usage, isLoading, bulkCreate, update, remove, isCreating, isUpdating } = useMaterials();
   const { data: projects } = useProjects();
   const { registerAddAction, registerDownloadAction, searchQuery, dateFilter } = useAction();
   
@@ -161,7 +162,7 @@ export default function MaterialUsage() {
     if (matched?.manager) {
       form.setValue('loggedBy', matched.manager, { shouldValidate: false });
     }
-  }, [watchedProjectCode, projects, editingRecord]);
+  }, [watchedProjectCode, projects, editingRecord, form]);
 
   const onSubmit = async (values) => {
     try {
@@ -222,7 +223,7 @@ export default function MaterialUsage() {
       try {
         await remove(id);
         toast.success("Record deleted");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete record");
       }
     }
@@ -247,8 +248,8 @@ export default function MaterialUsage() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
-          { label: 'Avg. Efficiency', value: `${efficiency}%`, icon: Recycle, color: 'text-green bg-green-light' },
-          { label: 'High Wastage Alerts', value: usage.filter(u => u.wasted > (u.used * 0.1)).length, icon: AlertCircle, color: 'text-red bg-red-light' },
+          { label: 'Avg. Efficiency', value: parseInt(efficiency, 10), suffix: '%', icon: Recycle, color: 'text-green bg-green-light' },
+          { label: 'High Wastage Alerts', value: usage.filter(u => u.wasted > (u.used * 0.1)).length, suffix: '', icon: AlertCircle, color: 'text-red bg-red-light' },
         ].map(stat => (
           <div key={stat.label} className="bg-surface border border-border rounded-xl p-5 shadow-sm flex items-center gap-4">
             <div className={cn("p-3 rounded-lg", stat.color)}>
@@ -256,7 +257,9 @@ export default function MaterialUsage() {
             </div>
             <div>
               <div className="text-[12px] text-text2 font-medium">{stat.label}</div>
-              <div className="text-xl font-bold">{stat.value}</div>
+              <div className="text-xl font-bold">
+                <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+              </div>
             </div>
           </div>
         ))}
@@ -279,7 +282,7 @@ export default function MaterialUsage() {
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
                   ))
-                ) : filteredUsage.map((u, idx) => (
+                ) : filteredUsage.map((u) => (
                   <motion.tr 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     key={u._id} 

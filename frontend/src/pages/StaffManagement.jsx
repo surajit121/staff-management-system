@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Plus, Search, Edit2, Trash2, Mail, Phone, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStaff } from '../hooks/useResource';
-import { cn } from '../lib/utils';
 import { Skeleton } from '../components/ui/skeleton';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -86,8 +85,36 @@ const staffSchema = z.object({
   color: z.string().default("#2C5F8A"),
 });
 
+const tableBodyVariants = {
+  hidden: { opacity: 1 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+};
+
+const tableRowVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -15, 
+    transition: { duration: 0.2 } 
+  }
+};
+
 export default function StaffManagement() {
-  const { data: staff, isLoading, create, bulkCreate, update, remove, isCreating, isUpdating, isDeleting } = useStaff();
+  const { data: staff, isLoading, create, bulkCreate, update, remove, isCreating, isUpdating } = useStaff();
   const { registerAddAction, registerImportAction, registerDownloadAction, searchQuery } = useAction();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -209,7 +236,7 @@ export default function StaffManagement() {
       try {
         await remove(id);
         toast.success("Staff member removed");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete staff");
       }
     }
@@ -246,17 +273,15 @@ export default function StaffManagement() {
                 <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-text3">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody variants={tableBodyVariants} initial="hidden" animate="visible">
               <AnimatePresence>
                 {isLoading ? (
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i} className="border-b border-border"><td colSpan={4} className="p-4"><Skeleton className="h-12 w-full" /></td></tr>
                   ))
-                ) : filteredStaff.map((s, idx) => (
+                ) : filteredStaff.map((s) => (
                   <motion.tr
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    variants={tableRowVariants}
                     key={s._id}
                     className="border-b border-border last:border-0 hover:bg-surface2/30 transition-all cursor-pointer group"
                   >
@@ -311,7 +336,7 @@ export default function StaffManagement() {
                   </motion.tr>
                 ))}
               </AnimatePresence>
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
       </div>

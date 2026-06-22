@@ -14,7 +14,10 @@ import {
   dashboardService,
   salaryService,
   leaveService,
-  remarkService
+  remarkService,
+  siteDiaryService,
+  vendorService,
+  assetService
 } from '../services/api';
 
 const useGenericResource = (key, service, extraInvalidationKeys = []) => {
@@ -85,9 +88,51 @@ export const useTravel = () => useGenericResource('travel', travelService);
 export const useProjects = () => useGenericResource('projects', projectService);
 export const useStock = () => useGenericResource('stock', stockService);
 export const useMaterials = () => useGenericResource('materials', materialService);
-export const useBilling = () => useGenericResource('billing', billingService);
+export const useBilling = () => {
+  const resource = useGenericResource('billing', billingService);
+  const queryClient = useQueryClient();
+  const bulkUpdateStatusMutation = useMutation({
+    mutationFn: ({ ids, status }) => billingService.bulkStatusUpdate(ids, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['billing'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+  });
+  return {
+    ...resource,
+    bulkUpdateStatus: bulkUpdateStatusMutation.mutateAsync,
+    isBulkUpdating: bulkUpdateStatusMutation.isPending,
+  };
+};
 export const useSalary = () => useGenericResource('salary-payments', salaryService);
 export const useLeave = () => useGenericResource('leave', leaveService);
+export const useSiteDiary = () => useGenericResource('site-diary', siteDiaryService);
+export const useVendors = () => useGenericResource('vendors', vendorService);
+export const useAssets = () => {
+  const resource = useGenericResource('assets', assetService);
+  const queryClient = useQueryClient();
+  
+  const logMaintenanceMutation = useMutation({
+    mutationFn: ({ id, data }) => assetService.logMaintenance(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ['assets-due-service'] });
+    },
+  });
+
+  const dueServiceQuery = useQuery({
+    queryKey: ['assets-due-service'],
+    queryFn: assetService.getDueService,
+  });
+
+  return {
+    ...resource,
+    logMaintenance: logMaintenanceMutation.mutateAsync,
+    isLoggingMaintenance: logMaintenanceMutation.isPending,
+    dueAssets: dueServiceQuery.data || [],
+    isDueAssetsLoading: dueServiceQuery.isLoading,
+  };
+};
 // Remarks hook moved up
 
 export const useDashboardStats = () => {

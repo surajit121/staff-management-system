@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
 import { useAction } from '../context/ActionContext';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 import {
   Dialog,
@@ -46,7 +47,7 @@ const leaveSchema = z.object({
 });
 
 export default function LeaveManagement() {
-  const { data: leaves, isLoading, create, update, remove, isCreating, isUpdating } = useLeave();
+  const { data: leaves, isLoading, create, update, remove, isCreating } = useLeave();
   const { staffList, isLoading: isStaffLoading } = useStaff();
   const { registerAddAction, searchQuery } = useAction();
 
@@ -100,7 +101,7 @@ export default function LeaveManagement() {
     try {
       await update({ id, data: { status } });
       toast.success(`Leave request ${status.toLowerCase()}`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to update status");
     }
   };
@@ -110,7 +111,7 @@ export default function LeaveManagement() {
       try {
         await remove(id);
         toast.success("Request deleted");
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete request");
       }
     }
@@ -146,7 +147,9 @@ export default function LeaveManagement() {
             </div>
             <div>
               <div className="text-[12px] text-text2 font-medium">{stat.label}</div>
-              <div className="text-xl font-bold">{stat.value}</div>
+              <div className="text-xl font-bold">
+                <AnimatedCounter value={stat.value} />
+              </div>
             </div>
           </div>
         ))}
