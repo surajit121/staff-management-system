@@ -10,7 +10,7 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 import { useAction } from '../context/ActionContext';
 import StaffCalendar from '../components/StaffCalendar';
-import { downloadCSV } from '../lib/export';
+import { downloadCSV, downloadMonthlyAttendanceExcel } from '../lib/export';
 import AnimatedCounter from '../components/AnimatedCounter';
 
 import {
@@ -84,6 +84,9 @@ export default function Attendance() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [calendarStaff, setCalendarStaff] = useState(null);
+  const [isMonthlyExportModalOpen, setIsMonthlyExportModalOpen] = useState(false);
+  const [exportMonth, setExportMonth] = useState(String(new Date().getMonth() + 1));
+  const [exportYear, setExportYear] = useState(String(new Date().getFullYear()));
 
   const displayDate = dateFilter || new Date().toISOString().split('T')[0];
 
@@ -267,6 +270,13 @@ export default function Attendance() {
           <h2 className="text-xl font-bold text-text">Attendance Log</h2>
           <p className="text-sm text-text2">Track and manage daily attendance.</p>
         </div>
+        <Button
+          onClick={() => setIsMonthlyExportModalOpen(true)}
+          className="flex items-center gap-1.5 px-4 h-9 rounded-lg text-xs font-semibold bg-green hover:bg-green/90 text-white transition-all duration-200 border shadow-sm border-green/20"
+        >
+          <Calendar size={14} />
+          Monthly Sheet
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -510,6 +520,80 @@ export default function Attendance() {
             attendanceRecords={attendance.filter(r => (r.staffId?._id || r.staffId) === calendarStaff?._id)} 
             onDateClick={handleCalendarDateClick}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isMonthlyExportModalOpen} onOpenChange={setIsMonthlyExportModalOpen}>
+        <DialogContent className="sm:max-w-[450px] bg-surface text-text border border-border/80 shadow-2xl rounded-xl overflow-hidden p-0">
+          <div className="p-4 px-5 border-b border-border/60 bg-surface2/25">
+            <DialogHeader className="space-y-0.5">
+              <DialogTitle className="text-lg font-bold tracking-tight text-text">
+                Export Monthly Attendance Sheet
+              </DialogTitle>
+              <DialogDescription className="text-xs text-text2">
+                Download a formatted Excel sheet with daily details for all staff members.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="p-5 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2">Month</label>
+                <Select onValueChange={setExportMonth} value={exportMonth}>
+                  <SelectTrigger className="bg-surface border-border/60 h-9 text-xs text-text">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-surface border-border">
+                    {[
+                      { value: '1', label: 'January' },
+                      { value: '2', label: 'February' },
+                      { value: '3', label: 'March' },
+                      { value: '4', label: 'April' },
+                      { value: '5', label: 'May' },
+                      { value: '6', label: 'June' },
+                      { value: '7', label: 'July' },
+                      { value: '8', label: 'August' },
+                      { value: '9', label: 'September' },
+                      { value: '10', label: 'October' },
+                      { value: '11', label: 'November' },
+                      { value: '12', label: 'December' },
+                    ].map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text2">Year</label>
+                <Select onValueChange={setExportYear} value={exportYear}>
+                  <SelectTrigger className="bg-surface border-border/60 h-9 text-xs text-text">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-surface border-border">
+                    {Array.from({ length: 5 }, (_, i) => String(new Date().getFullYear() - 2 + i)).map(y => (
+                      <SelectItem key={y} value={y}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-3 border-t border-border/60 gap-2 sm:gap-0">
+              <Button variant="outline" type="button" onClick={() => setIsMonthlyExportModalOpen(false)} className="h-9 px-4 border-border/80 text-text2 hover:text-text hover:bg-surface2/30 text-xs">
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  downloadMonthlyAttendanceExcel(staffList, attendance, Number(exportYear), Number(exportMonth));
+                  setIsMonthlyExportModalOpen(false);
+                }} 
+                className="h-9 px-4 bg-green hover:bg-green/90 text-white font-semibold transition-all duration-200 text-xs"
+              >
+                Export Excel
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

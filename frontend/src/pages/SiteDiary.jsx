@@ -64,6 +64,7 @@ const siteDiarySchema = z.object({
   workersPresent: z.coerce.number().min(0).default(0),
   weatherCondition: z.enum(['Sunny', 'Cloudy', 'Rainy', 'Windy', 'Stormy', 'Foggy']).default('Sunny'),
   workDone: z.string().min(3, 'Work description is required'),
+  workCompleted: z.boolean().default(false),
   materialsUsed: z.array(z.object({
     item: z.string().optional().default(''),
     qty: z.coerce.number().min(0).default(0),
@@ -90,11 +91,15 @@ function DiaryCard({ entry, project, onEdit, onDelete }) {
     <motion.div
       variants={cardVariants}
       layout
-      className="bg-surface border border-border rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden group"
+      className={cn(
+        "bg-surface border rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden group",
+        entry.workCompleted ? "border-green/40 shadow-sm shadow-green/5" : "border-border"
+      )}
     >
-      {/* Top accent bar by weather */}
+      {/* Top accent bar by weather / completion status */}
       <div className={cn(
         'h-1 w-full',
+        entry.workCompleted                 ? 'bg-gradient-to-r from-green to-green/20' :
         entry.weatherCondition === 'Sunny'  ? 'bg-gradient-to-r from-amber/60 to-amber/20' :
         entry.weatherCondition === 'Rainy'  ? 'bg-gradient-to-r from-accent/60 to-accent/20' :
         entry.weatherCondition === 'Stormy' ? 'bg-gradient-to-r from-red/60 to-red/20' :
@@ -124,6 +129,11 @@ function DiaryCard({ entry, project, onEdit, onDelete }) {
                   {project?.code || '—'}
                 </span>
                 <span className="text-[11px] font-semibold text-text2 truncate">{project?.name}</span>
+                {entry.workCompleted && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-green bg-green-light dark:bg-green/10 border border-green/20 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+                    <ClipboardCheck size={11} className="text-green animate-pulse" /> Completed
+                  </span>
+                )}
               </div>
               <p className="text-[13.5px] font-medium text-text leading-snug line-clamp-2">
                 {entry.workDone}
@@ -414,6 +424,7 @@ export default function SiteDiary() {
       materialsUsed: [{ item: '', qty: 0, unit: 'pcs' }],
       issues: '',
       nextDayPlan: '',
+      workCompleted: false,
     },
   });
 
@@ -436,6 +447,7 @@ export default function SiteDiary() {
         materialsUsed: [{ item: '', qty: 0, unit: 'pcs' }],
         issues: '',
         nextDayPlan: '',
+        workCompleted: false,
       });
       setIsModalOpen(true);
     });
@@ -525,6 +537,7 @@ export default function SiteDiary() {
         : [{ item: '', qty: 0, unit: 'pcs' }],
       issues: record.issues || '',
       nextDayPlan: record.nextDayPlan || '',
+      workCompleted: record.workCompleted || false,
     });
     setIsModalOpen(true);
   };
@@ -843,6 +856,39 @@ export default function SiteDiary() {
                       />
                     </FormControl>
                     <FormMessage className="text-[10px]" />
+                  </FormItem>
+                )} />
+
+                {/* Work Status / Completion Checkbox */}
+                <FormField control={form.control} name="workCompleted" render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-text2">Work Status</FormLabel>
+                    <FormControl>
+                      <button
+                        type="button"
+                        onClick={() => field.onChange(!field.value)}
+                        className={cn(
+                          "flex items-center justify-between w-full px-4 py-3 rounded-lg border text-left transition-all cursor-pointer",
+                          field.value
+                            ? "bg-green/10 border-green/30 text-green shadow-sm shadow-green/5"
+                            : "bg-surface border-border/60 text-text2 hover:border-border"
+                        )}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <ClipboardCheck size={16} className={field.value ? "text-green animate-bounce" : "text-text3"} />
+                          <div>
+                            <div className="text-xs font-bold">Work Done is Completed</div>
+                            <div className="text-[10px] opacity-80">Check this if today's logged work is fully complete.</div>
+                          </div>
+                        </div>
+                        <div className={cn(
+                          "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                          field.value ? "border-green bg-green text-white" : "border-border/60 bg-transparent"
+                        )}>
+                          {field.value && <span className="text-[10px] font-bold">✓</span>}
+                        </div>
+                      </button>
+                    </FormControl>
                   </FormItem>
                 )} />
 

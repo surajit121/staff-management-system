@@ -11,6 +11,7 @@ const siteDiarySchema = new mongoose.Schema({
     default: 'Sunny'
   },
   workDone: { type: String, required: true },
+  workCompleted: { type: Boolean, default: false },
   materialsUsed: [{
     item: { type: String, default: '' },
     qty: { type: Number, default: 0 },
