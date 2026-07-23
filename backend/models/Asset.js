@@ -22,8 +22,10 @@ const assetSchema = new mongoose.Schema({
   },
   brand: { type: String, default: '' },
   model: { type: String, default: '' },
+  serialNumber: { type: String, default: '' },
   purchaseDate: { type: String, default: '' },
   purchaseCost: { type: Number, default: 0 },
+  warrantyExpiry: { type: String, default: '' },
   currentCondition: {
     type: String,
     enum: ['Good', 'Fair', 'Needs Repair', 'Retired'],
@@ -31,6 +33,15 @@ const assetSchema = new mongoose.Schema({
   },
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'Staff', default: null },
   assignedProject: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', default: null },
+  vendor: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', default: null },
+  assetPhoto: {
+    filename: { type: String, default: '' },
+    url: { type: String, default: '' }
+  },
+  invoiceFile: {
+    filename: { type: String, default: '' },
+    url: { type: String, default: '' }
+  },
   lastServiceDate: { type: String, default: '' },
   nextServiceDue: { type: String, default: '' },
   maintenanceLog: [maintenanceSchema],
@@ -40,5 +51,6 @@ assetSchema.index({ assetCode: 1 });
 assetSchema.index({ category: 1 });
 assetSchema.index({ assignedTo: 1 });
 assetSchema.index({ assignedProject: 1 });
+assetSchema.index({ vendor: 1 });
 
 export const Asset = mongoose.model('Asset', assetSchema);

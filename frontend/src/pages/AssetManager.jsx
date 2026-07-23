@@ -1,12 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import {
   Wrench, Truck, ShieldAlert, CheckCircle2, AlertTriangle, Plus,
   Search, Filter, User, MapPin, Calendar, IndianRupee,
   Trash2, Edit2, ClipboardList, Info, CalendarDays, Loader2, X,
-  Hammer, Laptop, HardHat, Bike, Activity, RefreshCw
+  Hammer, Laptop, HardHat, Bike, Activity, RefreshCw,
+  Upload, FileText, Camera, FileDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAssets, useStaff, useProjects } from '../hooks/useResource';
+import { useAssets, useStaff, useProjects, useVendors } from '../hooks/useResource';
+import { uploadService } from '../services/api';
 import { cn, formatDate } from '../lib/utils';
 import { Skeleton } from '../components/ui/skeleton';
 import { useForm } from 'react-hook-form';
@@ -38,11 +40,14 @@ const assetSchema = z.object({
   category: z.enum(['Vehicle', 'Tool', 'Equipment', 'Electronics', 'Other']),
   brand: z.string().optional().default(''),
   model: z.string().optional().default(''),
+  serialNumber: z.string().optional().default(''),
   purchaseDate: z.string().optional().default(''),
   purchaseCost: z.coerce.number().min(0).optional().default(0),
+  warrantyExpiry: z.string().optional().default(''),
   currentCondition: z.enum(['Good', 'Fair', 'Needs Repair', 'Retired']).default('Good'),
   assignedTo: z.string().optional().default(''),
   assignedProject: z.string().optional().default(''),
+  vendor: z.string().optional().default(''),
   lastServiceDate: z.string().optional().default(''),
   nextServiceDue: z.string().optional().default(''),
 });
@@ -62,6 +67,76 @@ const CATEGORIES = [
   { value: 'Equipment',   label: 'Equipment',    icon: HardHat,   color: '#10B981', bg: 'bg-green-500/10',   text: 'text-green-500' },
   { value: 'Electronics', label: 'Electronics',  icon: Laptop,    color: '#8B5CF6', bg: 'bg-purple-500/10',  text: 'text-purple-500' },
   { value: 'Other',       label: 'Others',       icon: Wrench,     color: '#6B7280', bg: 'bg-slate-500/10',   text: 'text-slate-500' },
+];
+
+// ── Asset Presets for CCTV & Fire Safety ─────────────────────────────────────
+const PRESET_ASSET_GROUPS = [
+  {
+    groupLabel: '📹 CCTV Surveillance',
+    groupColor: '#8B5CF6',
+    groupBg: 'bg-purple-500/10',
+    groupText: 'text-purple-600',
+    defaultCategory: 'Electronics',
+    defaultBrand: 'CP Plus',
+    items: [
+      { name: 'CCTV Dome Camera 2MP',         brand: 'CP Plus' },
+      { name: 'CCTV Dome Camera 5MP',         brand: 'Hikvision' },
+      { name: 'CCTV Bullet Camera 2MP',       brand: 'CP Plus' },
+      { name: 'CCTV Bullet Camera 5MP',       brand: 'Dahua' },
+      { name: 'CCTV Bullet Camera 8MP 4K',    brand: 'Hikvision' },
+      { name: 'PTZ Speed Dome Camera',        brand: 'Hikvision' },
+      { name: 'IP Network Camera PoE',        brand: 'Uniview' },
+      { name: 'Wireless WiFi Camera',         brand: 'CP Plus' },
+      { name: 'Night Vision IR Camera',       brand: 'Dahua' },
+      { name: 'Fisheye Panoramic Camera',     brand: 'Hikvision' },
+      { name: 'DVR 4 Channel',                brand: 'CP Plus' },
+      { name: 'DVR 8 Channel',                brand: 'Dahua' },
+      { name: 'DVR 16 Channel',               brand: 'Hikvision' },
+      { name: 'NVR 4 Channel PoE',            brand: 'Uniview' },
+      { name: 'NVR 8 Channel PoE',            brand: 'Hikvision' },
+      { name: 'NVR 16 Channel PoE',           brand: 'Dahua' },
+      { name: 'CCTV Power Supply Unit',       brand: 'CP Plus' },
+      { name: 'BNC Connector Pack',           brand: 'CP Plus' },
+      { name: 'Video Balun Transceiver',      brand: 'CP Plus' },
+      { name: 'CCTV Junction Box',            brand: 'CP Plus' },
+      { name: 'Coaxial Cable RG59 (100m)',    brand: 'CP Plus' },
+      { name: 'Siamese CCTV Cable (100m)',    brand: 'CP Plus' },
+      { name: 'Cat6 Ethernet Cable (100m)',   brand: 'Panasonic' },
+    ],
+  },
+  {
+    groupLabel: '🔥 Fire Safety & Protection',
+    groupColor: '#EF4444',
+    groupBg: 'bg-red-500/10',
+    groupText: 'text-red-600',
+    defaultCategory: 'Equipment',
+    defaultBrand: 'Ceasefire',
+    items: [
+      { name: 'ABC Fire Extinguisher 2kg',    brand: 'Ceasefire' },
+      { name: 'ABC Fire Extinguisher 4kg',    brand: 'Ceasefire' },
+      { name: 'ABC Fire Extinguisher 6kg',    brand: 'Kanex' },
+      { name: 'ABC Fire Extinguisher 9kg',    brand: 'Minimax' },
+      { name: 'CO2 Fire Extinguisher 2kg',    brand: 'Ceasefire' },
+      { name: 'CO2 Fire Extinguisher 4.5kg',  brand: 'Safex' },
+      { name: 'CO2 Fire Extinguisher 6.5kg',  brand: 'Kidde' },
+      { name: 'Water Fire Extinguisher 9L',   brand: 'Minimax' },
+      { name: 'Foam Fire Extinguisher 6L',    brand: 'Safex' },
+      { name: 'Dry Powder Extinguisher 5kg',  brand: 'Kanex' },
+      { name: 'Wet Chemical Extinguisher 6L', brand: 'Ceasefire' },
+      { name: 'Smoke Detector Sensor',        brand: 'Honeywell' },
+      { name: 'Heat Detector Sensor',         brand: 'Bosch' },
+      { name: 'Fire Alarm Control Panel',     brand: 'Honeywell' },
+      { name: 'Manual Call Point (MCP)',      brand: 'Bosch' },
+      { name: 'Fire Alarm Sounder Bell',      brand: 'Ceasefire' },
+      { name: 'Sprinkler Head (Upright)',     brand: 'Minimax' },
+      { name: 'Sprinkler Head (Concealed)',   brand: 'Minimax' },
+      { name: 'Fire Hose Reel 30m',          brand: 'Ceasefire' },
+      { name: 'Fire Safety Cabinet Box',     brand: 'Ceasefire' },
+      { name: 'Fire Exit Sign (LED)',         brand: 'First Alert' },
+      { name: 'Emergency Light Unit',        brand: 'First Alert' },
+      { name: 'Gas Leak Detector',           brand: 'Honeywell' },
+    ],
+  },
 ];
 
 
@@ -119,6 +194,7 @@ export default function AssetManager() {
   const { data: assets, isLoading, create, update, remove, logMaintenance, dueAssets, isLoggingMaintenance } = useAssets();
   const { data: staff } = useStaff();
   const { data: projects } = useProjects();
+  const { data: vendors } = useVendors();
 
   // UX State
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -134,6 +210,12 @@ export default function AssetManager() {
   const [showCustomBrandInput, setShowCustomBrandInput] = useState(false);
   const [customBrandName, setCustomBrandName] = useState('');
 
+  // Asset Name Presets Dropdown State
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [suggestionQuery, setSuggestionQuery] = useState('');
+  const suggestionsRef = useRef(null);
+
+
   // Forms Hook Setup
   const form = useForm({
     resolver: zodResolver(assetSchema),
@@ -143,11 +225,14 @@ export default function AssetManager() {
       category: 'Equipment',
       brand: '',
       model: '',
+      serialNumber: '',
       purchaseDate: new Date().toISOString().split('T')[0],
       purchaseCost: 0,
+      warrantyExpiry: '',
       currentCondition: 'Good',
       assignedTo: '',
       assignedProject: '',
+      vendor: '',
       lastServiceDate: '',
       nextServiceDue: '',
     }
@@ -176,6 +261,51 @@ export default function AssetManager() {
       form.setValue('assetCode', code, { shouldValidate: true });
     }
   }, [watchedName, watchedCategory, editingAsset, assets, form.formState.dirtyFields.assetCode]);
+
+  // Close suggestions dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
+        setIsSuggestionsOpen(false);
+      }
+    };
+    if (isSuggestionsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isSuggestionsOpen]);
+
+  // Filtered suggestions based on what user has typed
+  const filteredPresetGroups = useMemo(() => {
+    const q = suggestionQuery.toLowerCase().trim();
+    if (!q) return PRESET_ASSET_GROUPS;
+    return PRESET_ASSET_GROUPS.map(group => ({
+      ...group,
+      items: group.items.filter(item => item.name.toLowerCase().includes(q)),
+    })).filter(group => group.items.length > 0);
+  }, [suggestionQuery]);
+
+  // Handle selecting a preset from the dropdown
+  const handleSelectPreset = useCallback((item, group) => {
+    form.setValue('name', item.name, { shouldValidate: true, shouldDirty: true });
+    form.setValue('category', group.defaultCategory, { shouldValidate: true, shouldDirty: true });
+    // Set brand — check if it's in our known brand list; if so, set it, else use custom
+    const knownBrands = [
+      'Hikvision','Dahua','CP Plus','Honeywell','Bosch','Uniview','Panasonic',
+      'Ceasefire','Kanex','Safex','Minimax','Kidde','First Alert','Amerex',
+    ];
+    const itemBrand = item.brand || group.defaultBrand;
+    if (knownBrands.includes(itemBrand)) {
+      form.setValue('brand', itemBrand, { shouldValidate: true, shouldDirty: true });
+      setShowCustomBrandInput(false);
+    } else {
+      form.setValue('brand', '__custom__', { shouldValidate: true, shouldDirty: true });
+      setCustomBrandName(itemBrand);
+      setShowCustomBrandInput(true);
+    }
+    setSuggestionQuery(item.name);
+    setIsSuggestionsOpen(false);
+  }, [form]);
 
   // Filters Calculation
   const filteredAssets = useMemo(() => {
@@ -234,17 +364,22 @@ export default function AssetManager() {
     setEditingAsset(null);
     setShowCustomBrandInput(false);
     setCustomBrandName('');
+    setSuggestionQuery('');
+    setIsSuggestionsOpen(false);
     form.reset({
       name: '',
       assetCode: '',
       category: 'Equipment',
       brand: '',
       model: '',
+      serialNumber: '',
       purchaseDate: new Date().toISOString().split('T')[0],
       purchaseCost: 0,
+      warrantyExpiry: '',
       currentCondition: 'Good',
       assignedTo: '',
       assignedProject: '',
+      vendor: '',
       lastServiceDate: '',
       nextServiceDue: '',
     });
@@ -255,9 +390,12 @@ export default function AssetManager() {
   const handleEditAsset = (asset, e) => {
     e.stopPropagation();
     setEditingAsset(asset);
+    setSuggestionQuery(asset.name || '');
+    setIsSuggestionsOpen(false);
     const isCustom = asset.brand && !['Hikvision', 'Dahua', 'CP Plus', 'Honeywell', 'Bosch', 'Uniview', 'Panasonic', 'Ceasefire', 'Kanex', 'Safex', 'Minimax', 'Kidde', 'First Alert', 'Amerex'].includes(asset.brand);
     setShowCustomBrandInput(isCustom);
     if (isCustom) {
+
       setCustomBrandName(asset.brand);
     } else {
       setCustomBrandName('');
@@ -268,11 +406,14 @@ export default function AssetManager() {
       category: asset.category,
       brand: isCustom ? '__custom__' : (asset.brand || ''),
       model: asset.model || '',
+      serialNumber: asset.serialNumber || '',
       purchaseDate: asset.purchaseDate || '',
       purchaseCost: asset.purchaseCost || 0,
+      warrantyExpiry: asset.warrantyExpiry || '',
       currentCondition: asset.currentCondition || 'Good',
       assignedTo: asset.assignedTo?._id || asset.assignedTo || '',
       assignedProject: asset.assignedProject?._id || asset.assignedProject || '',
+      vendor: asset.vendor?._id || asset.vendor || '',
       lastServiceDate: asset.lastServiceDate || '',
       nextServiceDue: asset.nextServiceDue || '',
     });
@@ -297,6 +438,7 @@ export default function AssetManager() {
         brand: values.brand === '__custom__' ? customBrandName : values.brand,
         assignedTo: values.assignedTo === '' ? null : values.assignedTo,
         assignedProject: values.assignedProject === '' ? null : values.assignedProject,
+        vendor: values.vendor === '' ? null : values.vendor,
       };
 
       if (editingAsset) {
@@ -624,6 +766,15 @@ export default function AssetManager() {
 
               {/* Drawer Body Grid */}
               <div className="space-y-6 mt-6 flex-1">
+                {selectedAsset.assetPhoto?.url && (
+                  <div className="w-full h-48 rounded-xl overflow-hidden border border-border/80 shadow-sm relative group">
+                    <img
+                      src={selectedAsset.assetPhoto.url}
+                      alt={selectedAsset.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 {/* Stats / Condition section */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-surface2/40 border border-border rounded-xl p-3 text-center space-y-1">
@@ -698,10 +849,44 @@ export default function AssetManager() {
                     <span className="font-semibold text-text">{selectedAsset.category}</span>
                   </div>
                   <div className="space-y-0.5 text-xs">
+                    <span className="text-[9px] font-bold text-text3 uppercase tracking-wider block">Model</span>
+                    <span className="font-semibold text-text">{selectedAsset.model || 'Not specified'}</span>
+                  </div>
+                  <div className="space-y-0.5 text-xs">
+                    <span className="text-[9px] font-bold text-text3 uppercase tracking-wider block">Serial Number</span>
+                    <span className="font-semibold text-text">{selectedAsset.serialNumber || 'Not specified'}</span>
+                  </div>
+                  <div className="space-y-0.5 text-xs">
+                    <span className="text-[9px] font-bold text-text3 uppercase tracking-wider block">Vendor Purchased From</span>
+                    <span className="font-semibold text-text">
+                      {selectedAsset.vendor?.name || selectedAsset.vendor || 'Not specified'}
+                    </span>
+                  </div>
+                  <div className="space-y-0.5 text-xs">
                     <span className="text-[9px] font-bold text-text3 uppercase tracking-wider block">Purchase Date</span>
                     <span className="font-semibold text-text">
                       {selectedAsset.purchaseDate ? formatDate(selectedAsset.purchaseDate) : 'Not specified'}
                     </span>
+                  </div>
+                  <div className="space-y-0.5 text-xs">
+                    <span className="text-[9px] font-bold text-text3 uppercase tracking-wider block">Warranty Status</span>
+                    {(() => {
+                      if (!selectedAsset.warrantyExpiry) {
+                        return <span className="font-semibold text-text3">No warranty specified</span>;
+                      }
+                      const today = new Date().toISOString().split('T')[0];
+                      const isExpired = selectedAsset.warrantyExpiry < today;
+                      return (
+                        <span className={cn(
+                          "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold border mt-0.5",
+                          isExpired 
+                            ? "bg-red-light border-red/10 text-red" 
+                            : "bg-green-light border-green/10 text-green"
+                        )}>
+                          {isExpired ? 'Expired' : 'Active'} • {formatDate(selectedAsset.warrantyExpiry)}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="space-y-0.5 text-xs">
                     <span className="text-[9px] font-bold text-text3 uppercase tracking-wider block">Last Service Date</span>
@@ -716,6 +901,31 @@ export default function AssetManager() {
                     </span>
                   </div>
                 </div>
+
+                {/* Purchase receipt file if attached */}
+                {selectedAsset.invoiceFile?.url && (
+                  <div className="bg-surface2/25 border border-border/80 rounded-xl p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-lg bg-accent/5 text-accent border border-accent/10">
+                        <FileText size={15} />
+                      </div>
+                      <div className="text-xs">
+                        <p className="font-semibold text-text">Purchase Receipt / Invoice</p>
+                        <p className="text-[10px] text-text3 truncate max-w-[200px]">
+                          {selectedAsset.invoiceFile.filename}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={selectedAsset.invoiceFile.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-8 px-3 border border-border hover:bg-surface2/30 rounded-lg text-[10px] font-bold text-text flex items-center gap-1 cursor-pointer transition-all shrink-0"
+                    >
+                      <FileDown size={12} /> View Receipt
+                    </a>
+                  </div>
+                )}
 
                 {/* Maintenance timeline log */}
                 <div className="space-y-3 pt-3 border-t border-border">
@@ -888,15 +1098,84 @@ export default function AssetManager() {
           <form onSubmit={form.handleSubmit(onSubmitAsset)} className="flex flex-col flex-1 min-h-0">
             <div className="flex-1 overflow-y-auto p-5 space-y-4 max-h-[60vh] custom-scrollbar">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-text2 block">Asset Name / Title</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Drilling Machine Makita"
-                    autoComplete="off"
-                    {...form.register('name')}
-                    className="w-full bg-surface border border-border/60 rounded-lg h-9 px-3 text-xs focus:ring-accent"
-                  />
+                {/* ── Asset Name with Preset Dropdown ── */}
+                <div className="space-y-1 relative" ref={suggestionsRef}>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-text2 block">
+                    Asset Name / Title
+                    <span className="ml-1.5 text-[9px] font-semibold text-accent/80 normal-case tracking-normal">↓ click for quick presets</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="e.g. CCTV Dome Camera 5MP"
+                      autoComplete="off"
+                      {...form.register('name')}
+                      value={suggestionQuery}
+                      onChange={(e) => {
+                        setSuggestionQuery(e.target.value);
+                        form.setValue('name', e.target.value, { shouldValidate: true, shouldDirty: true });
+                        setIsSuggestionsOpen(true);
+                      }}
+                      onFocus={() => setIsSuggestionsOpen(true)}
+                      className="w-full bg-surface border border-border/60 rounded-lg h-9 pl-3 pr-7 text-xs focus:ring-accent focus:outline-none focus:ring-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsSuggestionsOpen(v => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-text3 hover:text-accent transition-colors cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Preset Suggestions Dropdown */}
+                  {isSuggestionsOpen && (
+                    <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden max-h-72 overflow-y-auto custom-scrollbar">
+                      {filteredPresetGroups.length === 0 ? (
+                        <div className="p-3 text-center text-[10px] text-text3 italic">
+                          No matching presets — type to use as custom name
+                        </div>
+                      ) : (
+                        filteredPresetGroups.map((group) => (
+                          <div key={group.groupLabel}>
+                            {/* Group Header */}
+                            <div className={`flex items-center gap-2 px-3 py-1.5 sticky top-0 bg-surface border-b border-border/40 ${group.groupBg}`}>
+                              <span className={`text-[9px] font-extrabold uppercase tracking-widest ${group.groupText}`}>
+                                {group.groupLabel}
+                              </span>
+                              <span className={`text-[8px] font-semibold ${group.groupText} opacity-60 ml-auto`}>
+                                {group.items.length} items
+                              </span>
+                            </div>
+                            {/* Group Items */}
+                            {group.items.map((item) => (
+                              <button
+                                key={item.name}
+                                type="button"
+                                onMouseDown={() => handleSelectPreset(item, group)}
+                                className="w-full text-left px-3 py-2 hover:bg-accent/5 transition-colors flex items-center justify-between gap-2 group/item"
+                              >
+                                <span className="text-[11px] text-text font-medium group-hover/item:text-accent transition-colors">
+                                  {item.name}
+                                </span>
+                                <span className="text-[9px] text-text3 font-semibold shrink-0 bg-surface2 px-1.5 py-0.5 rounded border border-border/60 group-hover/item:border-accent/20 group-hover/item:bg-accent/5 transition-all">
+                                  {item.brand}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        ))
+                      )}
+                      {/* Footer hint */}
+                      <div className="border-t border-border/40 px-3 py-1.5 bg-surface2/30">
+                        <p className="text-[9px] text-text3 italic">Selecting a preset auto-fills category &amp; brand</p>
+                      </div>
+                    </div>
+                  )}
+
                   {form.formState.errors.name && (
                     <p className="text-[10px] text-red font-semibold">{form.formState.errors.name.message}</p>
                   )}
@@ -995,19 +1274,63 @@ export default function AssetManager() {
                 </div>
 
                 <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-text2 block">Model</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. DHR242Z"
+                    autoComplete="off"
+                    {...form.register('model')}
+                    className="w-full bg-surface border border-border/60 rounded-lg h-9 px-3 text-xs focus:ring-accent"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-text2 block">Serial Number</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. SN-98234-AX"
+                    autoComplete="off"
+                    {...form.register('serialNumber')}
+                    className="w-full bg-surface border border-border/60 rounded-lg h-9 px-3 text-xs focus:ring-accent"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-text2 block">Vendor Purchased From</label>
+                  <select
+                    {...form.register('vendor')}
+                    className="w-full bg-surface border border-border/60 rounded-lg h-9 px-2 text-xs text-text focus:ring-accent"
+                  >
+                    <option value="">-- Select Vendor --</option>
+                    {(vendors || []).map(v => (
+                      <option key={v._id} value={v._id}>{v.name} ({v.category})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-text2 block">Purchase Date</label>
                   <input
                     type="date"
                     {...form.register('purchaseDate')}
-                    className="w-full bg-surface border border-border/60 rounded-lg h-9 px-3 text-xs"
+                    className="w-full bg-surface border border-border/60 rounded-lg h-9 px-3 text-xs focus:ring-accent"
                   />
                 </div>
 
-                <div className="space-y-1 col-span-2">
+                <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-text2 block">Purchase Cost (₹)</label>
                   <input
                     type="number"
                     {...form.register('purchaseCost')}
+                    className="w-full bg-surface border border-border/60 rounded-lg h-9 px-3 text-xs focus:ring-accent"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-text2 block">Warranty Expiry Date</label>
+                  <input
+                    type="date"
+                    {...form.register('warrantyExpiry')}
                     className="w-full bg-surface border border-border/60 rounded-lg h-9 px-3 text-xs focus:ring-accent"
                   />
                 </div>
@@ -1068,6 +1391,7 @@ export default function AssetManager() {
                   />
                 </div>
               </div>
+
             </div>
 
             <div className="p-4 border-t border-border/60 bg-surface2/25 gap-2 sm:gap-0 mt-auto flex justify-end">

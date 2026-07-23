@@ -302,7 +302,7 @@ createRoutes(Leave, 'leave', 'staffId');
 createRoutes(Remark, 'remarks', 'staffId');
 createRoutes(SiteDiary, 'site-diary', 'projectId');
 createRoutes(Vendor, 'vendors');
-createRoutes(Asset, 'assets', 'assignedTo assignedProject');
+createRoutes(Asset, 'assets', 'assignedTo assignedProject vendor');
 
 // Log maintenance entry for an Asset
 app.post('/api/assets/:id/maintenance', authMiddleware, async (req, res) => {
@@ -319,7 +319,7 @@ app.post('/api/assets/:id/maintenance', authMiddleware, async (req, res) => {
     await asset.save();
     await clearCache('assets');
     
-    const populatedAsset = await Asset.findById(asset._id).populate('assignedTo assignedProject');
+    const populatedAsset = await Asset.findById(asset._id).populate('assignedTo assignedProject vendor');
     res.json(populatedAsset);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -333,7 +333,7 @@ app.get('/api/assets/due-service', authMiddleware, async (req, res) => {
     const assets = await Asset.find({
       nextServiceDue: { $ne: '', $lte: today },
       currentCondition: { $ne: 'Retired' }
-    }).populate('assignedTo assignedProject').lean();
+    }).populate('assignedTo assignedProject vendor').lean();
     res.json(assets);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -29,13 +29,29 @@ export default function Layout({ children }) {
   const { onAdd } = useAction();
   const info = pageInfo[location.pathname] || { title: 'Management System', subtitle: 'StaffSync Pro' };
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const [isCollapsed, setIsCollapsed] = React.useState(() => {
+    return localStorage.getItem('sidebar_collapsed') === 'true';
+  });
+
+  const toggleCollapse = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('sidebar_collapsed', String(next));
+      return next;
+    });
+  };
 
   return (
     <div
       className="flex h-screen overflow-hidden font-sans"
       style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
     >
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+        isCollapsed={isCollapsed}
+        onToggleCollapse={toggleCollapse}
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar 
